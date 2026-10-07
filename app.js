@@ -261,6 +261,89 @@ async function addTeam() {
 ===================================================== */
 
 async function generateFixtures() {
+  fixtureMessage.textContent = "Membuat jadwal...";
+
+  try {
+    const { data: teams, error: teamError } = await supabase
+      .from("teams")
+      .select("*")
+      .order("id");
+
+    if (teamError) throw teamError;
+
+    if (!teams || teams.length < 2) {
+      fixtureMessage.textContent = "Minimal 2 tim untuk membuat jadwal.";
+      return;
+    }
+
+    // Cek apakah jadwal sudah ada
+    const { data: existing, error: existingError } = await supabase
+      .from("fixtures")
+      .select("*");
+
+    if (existingError) throw existingError;
+
+    if (existing && existing.length > 0) {
+      fixtureMessage.textContent =
+        "Jadwal sudah pernah dibuat. Hapus jadwal lama dulu jika ingin membuat ulang.";
+      return;
+    }
+
+    // Buat daftar tim
+    let list = [...teams];
+
+    // Kalau jumlah tim ganjil, tambahkan BYE
+    if (list.length % 2 !== 0) {
+      list.push({ id: null, name: "BYE" });
+    }
+
+    const totalTeams = list.length;
+    const rounds = totalTeams - 1;
+    const matchesPerRound = totalTeams / 2;
+
+    const fixtures = [];
+
+    for (let round = 0; round < rounds; round++) {
+      for (let i = 0; i < matchesPerRound; i++) {
+        const home = list[i];
+        const away = list[totalTeams - 1 - i];
+
+        if (home.name !== "BYE" && away.name !== "BYE") {
+          fixtures.push({
+            team1: home.name,
+            team2: away.name,
+            matchday: round + 1,
+            status: "UPCOMING"
+          });
+        }
+      }
+
+      // Sistem rotasi tim
+      const fixed = list[0];
+      const rotating = list.slice(1);
+
+      rotating.unshift(rotating.pop());
+
+      list = [fixed, ...rotating];
+    }
+
+    const { error: insertError } = await supabase
+      .from("fixtures")
+      .insert(fixtures);
+
+    if (insertError) throw insertError;
+
+    fixtureMessage.textContent =
+      `Berhasil membuat ${fixtures.length} pertandingan otomatis!`;
+
+    await loadFixtures();
+
+  } catch (error) {
+    console.error(error);
+    fixtureMessage.textContent =
+      "Gagal membuat jadwal: " + error.message;
+  }
+}
 
   const message =
     document.getElementById(
