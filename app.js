@@ -5,6 +5,12 @@ const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_SuCUxQSZRQGr_GsS1TCy5Q_ItEUJB4d";
 
 
+/*
+  GANTI INI DENGAN UUID ADMIN SUPABASE KAMU
+*/
+const ADMIN_UUID = "ADMIN-UUID-DI-SINI";
+
+
 const supabaseClient =
   window.supabase.createClient(
     SUPABASE_URL,
@@ -16,25 +22,28 @@ let teams = [];
 let fixtures = [];
 let matches = [];
 
-let currentFixture = 0;
+let currentFixtureIndex = 0;
+let selectedTeam = null;
+
+let autoSlide;
 
 
 /* =========================
    HELPER
 ========================= */
 
-const $ = id => document.getElementById(id);
+function $(id) {
+  return document.getElementById(id);
+}
 
 
 function escapeHTML(value) {
   return String(value ?? "")
-    .replace(/[&<>"']/g, c => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    }[c]));
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 
@@ -42,185 +51,196 @@ function escapeHTML(value) {
    NAVIGATION
 ========================= */
 
-function showPage(page) {
+document.querySelectorAll(".nav-btn").forEach(button => {
 
-  document.querySelectorAll(".page")
-    .forEach(p => p.classList.remove("active"));
+  button.addEventListener("click", () => {
 
-  document.querySelectorAll(".nav-btn")
-    .forEach(b => b.classList.remove("active"));
+    const page = button.dataset.page;
 
-  const target = $(page);
+    document.querySelectorAll(".nav-btn")
+      .forEach(btn => btn.classList.remove("active"));
 
-  if (target) {
-    target.classList.add("active");
-  }
-
-  document.querySelectorAll(".nav-btn")
-    .forEach(button => {
-
-      if (button.dataset.page === page) {
-        button.classList.add("active");
-      }
-
-    });
-}
+    button.classList.add("active");
 
 
-document.querySelectorAll(".nav-btn")
-  .forEach(button => {
+    document.querySelectorAll(".page")
+      .forEach(section => section.classList.remove("active-page"));
 
-    button.addEventListener("click", () => {
-      showPage(button.dataset.page);
-    });
+    $(page).classList.add("active-page");
 
   });
 
+});
+
 
 /* =========================
-   TEAMS
+   LOAD TEAMS
 ========================= */
 
 async function loadTeams() {
 
-  const { data, error } =
-    await supabaseClient
-      .from("teams")
-      .select("*")
-      .order("name", {
-        ascending: true
-      });
+  const { data, error } = await supabaseClient
+    .from("teams")
+    .select("*")
+    .order("name", { ascending: true });
+
 
   if (error) {
+
     console.error(error);
+
     return;
+
   }
+
 
   teams = data || [];
 
   renderTeamList();
+
   calculateTable();
-}
 
-
-function renderTeamList() {
-
-  const box = $("teamAdminList");
-
-  if (!box) return;
-
-  if (!teams.length) {
-
-    box.innerHTML =
-      "<p class='muted'>Belum ada tim.</p>";
-
-    return;
-  }
-
-  box.innerHTML = teams
-    .map((team, index) => `
-      <div class="admin-team-item">
-        ${index + 1}. ${escapeHTML(team.name)}
-      </div>
-    `)
-    .join("");
-}
-
-
-async function addTeam() {
-
-  const input = $("teamNameInput");
-  const message = $("teamMessage");
-
-  const name = input.value.trim();
-
-  if (!name) {
-
-    message.textContent =
-      "Masukkan nama tim.";
-
-    return;
-  }
-
-
-  const duplicate =
-    teams.some(team =>
-      team.name.toLowerCase() === name.toLowerCase()
-    );
-
-
-  if (duplicate) {
-
-    message.textContent =
-      "Tim tersebut sudah ada.";
-
-    return;
-  }
-
-
-  const { error } =
-    await supabaseClient
-      .from("teams")
-      .insert({
-        name
-      });
-
-
-  if (error) {
-
-    console.error(error);
-
-    message.textContent =
-      "Gagal menambahkan tim: " +
-      error.message;
-
-    return;
-  }
-
-
-  input.value = "";
-
-  message.textContent =
-    "Tim berhasil ditambahkan.";
-
-  await loadTeams();
 }
 
 
 /* =========================
-   GENERATE ROUND ROBIN
+   ADMIN TEAM LIST
 ========================= */
 
-function generateRoundRobin(names) {
+function renderTeamList() {
 
-  let list = [...names];
+  if (!teams.length) {
+
+    $("teamAdminList").innerHTML =
+      `<div class="empty">Belum ada tim.</div>`;
+
+    return;
+
+  }
+
+
+  $("teamAdminList").innerHTML =
+    teams.map(team => {
+
+      const logo = team.logo
+        ? `<img src="${escapeHTML(team.logo)}" alt="">`
+        : `<div class="team-logo-placeholder">⚽</div>`;
+
+
+      return `
+        <div class="admin-team">
+
+          ${logo}
+
+          <span>
+            ${escapeHTML(team.name)}
+          </span>
+
+        </div>
+      `;
+
+    }).join("");
+
+}
+
+
+/* =========================
+   ADD TEAM
+========================= */
+
+async function addTeam() {
+
+  const name =
+    $("teamNameInput").value.trim();
+
+  const logo =
+    $("teamLogoInput").value.trim();
+
+
+  if (!name) {
+
+    $("teamMessage").textContent =
+      "Nama tim wajib diisi.";
+
+    return;
+
+  }
+
+
+  const { error } = await supabaseClient
+    .from("teams")
+    .insert({
+      name: name,
+      logo: logo || null
+    });
+
+
+  if (error) {
+
+    $("teamMessage").textContent =
+      error.message;
+
+    return;
+
+  }
+
+
+  $("teamNameInput").value = "";
+  $("teamLogoInput").value = "";
+
+  $("teamMessage").textContent =
+    "Tim berhasil ditambahkan.";
+
+
+  await loadTeams();
+
+}
+
+
+$("addTeamBtn").addEventListener(
+  "click",
+  addTeam
+);
+
+
+/* =========================
+   ROUND ROBIN
+========================= */
+
+function generateRoundRobin(teamNames) {
+
+  let list = [...teamNames];
 
   if (list.length % 2 !== 0) {
     list.push(null);
   }
 
-  const rounds = list.length - 1;
-  const perRound = list.length / 2;
 
-  const generated = [];
+  const rounds = list.length - 1;
+
+  const half = list.length / 2;
+
+  const result = [];
 
 
   for (let round = 0; round < rounds; round++) {
 
-    for (let i = 0; i < perRound; i++) {
-
-      const team1 = list[i];
-      const team2 =
-        list[list.length - 1 - i];
+    const matchesThisRound = [];
 
 
-      if (team1 && team2) {
+    for (let i = 0; i < half; i++) {
 
-        generated.push({
-          team1,
-          team2,
-          matchday: round + 1,
-          status: "UPCOMING"
+      const home = list[i];
+
+      const away = list[list.length - 1 - i];
+
+
+      if (home && away) {
+
+        matchesThisRound.push({
+          team1: home,
+          team2: away,
+          matchday: round + 1
         });
 
       }
@@ -228,20 +248,22 @@ function generateRoundRobin(names) {
     }
 
 
+    result.push(...matchesThisRound);
+
+
     const fixed = list[0];
 
-    const rest = list.slice(1);
+    const rotating = list.slice(1);
 
-    rest.unshift(rest.pop());
+    rotating.unshift(rotating.pop());
 
-    list = [
-      fixed,
-      ...rest
-    ];
+    list = [fixed, ...rotating];
+
   }
 
 
-  return generated;
+  return result;
+
 }
 
 
@@ -251,57 +273,39 @@ function generateRoundRobin(names) {
 
 async function generateFixtures() {
 
-  const message =
-    $("fixtureMessage");
-
-  message.textContent =
-    "Membuat jadwal...";
-
-
   if (teams.length < 2) {
 
-    message.textContent =
-      "Minimal 2 tim.";
+    $("fixtureMessage").textContent =
+      "Minimal harus ada 2 tim.";
 
     return;
+
   }
 
 
-  const {
-    data: existing,
-    error: checkError
-  } =
+  const { data: existing } =
     await supabaseClient
       .from("fixtures")
       .select("id")
       .limit(1);
 
 
-  if (checkError) {
+  if (existing && existing.length > 0) {
 
-    message.textContent =
-      "Gagal mengecek jadwal: " +
-      checkError.message;
-
-    return;
-  }
-
-
-  if (existing && existing.length) {
-
-    message.textContent =
+    $("fixtureMessage").textContent =
       "Jadwal sudah tersedia.";
 
-    await loadFixtures();
-
     return;
+
   }
+
+
+  const teamNames =
+    teams.map(team => team.name);
 
 
   const generated =
-    generateRoundRobin(
-      teams.map(team => team.name)
-    );
+    generateRoundRobin(teamNames);
 
 
   const { error } =
@@ -312,26 +316,31 @@ async function generateFixtures() {
 
   if (error) {
 
-    console.error(error);
-
-    message.textContent =
-      "Gagal membuat jadwal: " +
+    $("fixtureMessage").textContent =
       error.message;
 
     return;
+
   }
 
 
-  message.textContent =
-    `${generated.length} pertandingan berhasil dibuat.`;
+  $("fixtureMessage").textContent =
+    "Jadwal berhasil dibuat.";
 
 
   await loadFixtures();
+
 }
 
 
+$("generateFixturesBtn").addEventListener(
+  "click",
+  generateFixtures
+);
+
+
 /* =========================
-   FIXTURES
+   LOAD FIXTURES
 ========================= */
 
 async function loadFixtures() {
@@ -340,12 +349,8 @@ async function loadFixtures() {
     await supabaseClient
       .from("fixtures")
       .select("*")
-      .order("matchday", {
-        ascending: true
-      })
-      .order("id", {
-        ascending: true
-      });
+      .order("matchday", { ascending: true })
+      .order("id", { ascending: true });
 
 
   if (error) {
@@ -353,79 +358,32 @@ async function loadFixtures() {
     console.error(error);
 
     return;
+
   }
 
 
   fixtures = data || [];
 
 
-  renderUpcoming();
   renderHomeFixture();
+
   renderFixtureSelector();
 
   renderSelectedTeamDetail();
-}
 
-
-function getUpcomingFixtures() {
-
-  return fixtures.filter(
-    fixture =>
-      fixture.status === "UPCOMING"
-  );
 }
 
 
 /* =========================
-   UPCOMING LIST
+   UPCOMING FIXTURES
 ========================= */
 
-function renderUpcoming() {
+function getUpcomingFixtures() {
 
-  const box = $("upcomingList");
+  return fixtures.filter(
+    fixture => fixture.status !== "PLAYED"
+  );
 
-  if (!box) return;
-
-
-  const upcoming =
-    getUpcomingFixtures();
-
-
-  if (!upcoming.length) {
-
-    box.innerHTML =
-      "<p class='muted'>Tidak ada pertandingan mendatang.</p>";
-
-    return;
-  }
-
-
-  box.innerHTML =
-    upcoming.map(fixture => `
-
-      <div class="match-card">
-
-        <small>
-          MATCHDAY ${fixture.matchday}
-        </small>
-
-        <div class="match-teams">
-
-          <span>
-            ${escapeHTML(fixture.team1)}
-          </span>
-
-          <strong>VS</strong>
-
-          <span>
-            ${escapeHTML(fixture.team2)}
-          </span>
-
-        </div>
-
-      </div>
-
-    `).join("");
 }
 
 
@@ -439,277 +397,179 @@ function renderHomeFixture() {
     getUpcomingFixtures();
 
 
-  if (!$("fixtureTeam1")) return;
-
-
   if (!upcoming.length) {
 
-    $("fixtureTeam1").textContent = "-";
-    $("fixtureTeam2").textContent = "-";
-
-    $("fixtureMatchday").textContent =
-      "Belum ada jadwal";
-
-    $("fixtureDate").textContent = "";
+    $("homeFixture").innerHTML = `
+      <div class="empty">
+        Belum ada pertandingan berikutnya.
+      </div>
+    `;
 
     return;
+
   }
 
 
   if (
-    currentFixture >= upcoming.length
+    currentFixtureIndex >= upcoming.length
   ) {
-    currentFixture = 0;
+
+    currentFixtureIndex = 0;
+
   }
 
 
   const fixture =
-    upcoming[currentFixture];
+    upcoming[currentFixtureIndex];
 
 
-  $("fixtureTeam1").textContent =
-    fixture.team1;
+  $("homeFixture").innerHTML = `
 
-  $("fixtureTeam2").textContent =
-    fixture.team2;
+    <div class="fixture-box">
 
-  $("fixtureMatchday").textContent =
-    `MATCHDAY ${fixture.matchday}`;
+      <div>
 
-  $("fixtureDate").textContent =
-    "Jadwal pertandingan";
+        <div class="fixture-matchday">
+          MATCHDAY ${fixture.matchday}
+        </div>
+
+        <div class="fixture-teams">
+
+          <div class="fixture-team">
+            ${escapeHTML(fixture.team1)}
+          </div>
+
+          <div class="fixture-vs">
+            VS
+          </div>
+
+          <div class="fixture-team">
+            ${escapeHTML(fixture.team2)}
+          </div>
+
+        </div>
+
+        <div class="fixture-vs">
+          UPCOMING
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
 }
 
 
 /* =========================
-   ARROWS
+   SLIDER
 ========================= */
 
-$("prevFixture")
-  .addEventListener("click", () => {
-
-    const upcoming =
-      getUpcomingFixtures();
-
-    if (!upcoming.length) return;
-
-    currentFixture--;
-
-    if (currentFixture < 0) {
-      currentFixture =
-        upcoming.length - 1;
-    }
-
-    renderHomeFixture();
-  });
-
-
-$("nextFixture")
-  .addEventListener("click", () => {
-
-    const upcoming =
-      getUpcomingFixtures();
-
-    if (!upcoming.length) return;
-
-    currentFixture++;
-
-    if (
-      currentFixture >=
-      upcoming.length
-    ) {
-      currentFixture = 0;
-    }
-
-    renderHomeFixture();
-  });
-
-
-/* AUTO SLIDE */
-
-setInterval(() => {
+function nextFixture() {
 
   const upcoming =
     getUpcomingFixtures();
 
-  if (upcoming.length <= 1) return;
 
-  currentFixture++;
+  if (!upcoming.length) return;
+
+
+  currentFixtureIndex++;
 
   if (
-    currentFixture >=
-    upcoming.length
+    currentFixtureIndex >= upcoming.length
   ) {
-    currentFixture = 0;
+
+    currentFixtureIndex = 0;
+
   }
+
 
   renderHomeFixture();
 
-}, 5000);
+}
+
+
+function prevFixture() {
+
+  const upcoming =
+    getUpcomingFixtures();
+
+
+  if (!upcoming.length) return;
+
+
+  currentFixtureIndex--;
+
+  if (currentFixtureIndex < 0) {
+
+    currentFixtureIndex =
+      upcoming.length - 1;
+
+  }
+
+
+  renderHomeFixture();
+
+}
+
+
+$("nextFixture").addEventListener(
+  "click",
+  nextFixture
+);
+
+
+$("prevFixture").addEventListener(
+  "click",
+  prevFixture
+);
+
+
+autoSlide = setInterval(
+  nextFixture,
+  5000
+);
 
 
 /* =========================
-   ADMIN FIXTURE SELECTOR
+   ADMIN FIXTURE SELECT
 ========================= */
 
 function renderFixtureSelector() {
 
   const select =
-    $("matchTeam1Select");
+    $("matchFixtureSelect");
 
-  if (!select) return;
+
+  const upcoming =
+    getUpcomingFixtures();
 
 
   select.innerHTML =
-    `<option value="">Pilih pertandingan</option>`;
+    `<option value="">
+      Pilih pertandingan
+    </option>`;
 
 
-  getUpcomingFixtures()
-    .forEach(fixture => {
+  upcoming.forEach(fixture => {
 
-      const option =
-        document.createElement("option");
+    select.innerHTML += `
 
-      option.value =
-        fixture.id;
+      <option value="${fixture.id}">
 
-      option.textContent =
-        `MD ${fixture.matchday} — ${fixture.team1} vs ${fixture.team2}`;
+        Matchday ${fixture.matchday} —
+        ${escapeHTML(fixture.team1)}
+        vs
+        ${escapeHTML(fixture.team2)}
 
-      select.appendChild(option);
+      </option>
 
-    });
-}
+    `;
 
+  });
 
-/* =========================
-   ADD MATCH RESULT
-========================= */
-
-async function addMatch() {
-
-  const fixtureId =
-    $("matchTeam1Select").value;
-
-  const score1 =
-    Number($("matchScore1").value);
-
-  const score2 =
-    Number($("matchScore2").value);
-
-  const message =
-    $("matchMessage");
-
-
-  if (!fixtureId) {
-
-    message.textContent =
-      "Pilih pertandingan.";
-
-    return;
-  }
-
-
-  if (
-    !Number.isInteger(score1) ||
-    !Number.isInteger(score2) ||
-    score1 < 0 ||
-    score2 < 0
-  ) {
-
-    message.textContent =
-      "Masukkan skor yang valid.";
-
-    return;
-  }
-
-
-  const fixture =
-    fixtures.find(
-      f =>
-        String(f.id) ===
-        String(fixtureId)
-    );
-
-
-  if (
-    !fixture ||
-    fixture.status !== "UPCOMING"
-  ) {
-
-    message.textContent =
-      "Pertandingan tidak tersedia.";
-
-    return;
-  }
-
-
-  const {
-    error: matchError
-  } =
-    await supabaseClient
-      .from("matches")
-      .insert({
-
-        team1: fixture.team1,
-
-        score1,
-
-        score2,
-
-        team2: fixture.team2,
-
-        status: "FT"
-
-      });
-
-
-  if (matchError) {
-
-    console.error(matchError);
-
-    message.textContent =
-      "Gagal menyimpan hasil: " +
-      matchError.message;
-
-    return;
-  }
-
-
-  const {
-    error: updateError
-  } =
-    await supabaseClient
-      .from("fixtures")
-      .update({
-        status: "PLAYED"
-      })
-      .eq("id", fixture.id);
-
-
-  if (updateError) {
-
-    console.error(updateError);
-
-    message.textContent =
-      "Hasil tersimpan, tetapi status jadwal gagal diperbarui.";
-
-    return;
-  }
-
-
-  $("matchScore1").value = "";
-  $("matchScore2").value = "";
-
-  $("matchTeam1Select").value = "";
-
-
-  message.textContent =
-    "Hasil berhasil disimpan.";
-
-
-  await loadFixtures();
-  await loadMatches();
 }
 
 
@@ -723,9 +583,7 @@ async function loadMatches() {
     await supabaseClient
       .from("matches")
       .select("*")
-      .order("id", {
-        ascending: false
-      });
+      .order("id", { ascending: true });
 
 
   if (error) {
@@ -733,212 +591,246 @@ async function loadMatches() {
     console.error(error);
 
     return;
+
   }
 
 
   matches = data || [];
 
 
-  renderMatches();
-
   calculateTable();
 
   renderSelectedTeamDetail();
+
 }
 
 
 /* =========================
-   RESULT LIST
+   INPUT RESULT
 ========================= */
 
-function renderMatches() {
+async function addMatch() {
 
-  const box =
-    $("matchList");
+  const fixtureId =
+    $("matchFixtureSelect").value;
 
-  if (!box) return;
+  const score1 =
+    Number($("matchScore1").value);
+
+  const score2 =
+    Number($("matchScore2").value);
 
 
-  if (!matches.length) {
+  if (!fixtureId) {
 
-    box.innerHTML =
-      "<p class='muted'>Belum ada hasil pertandingan.</p>";
+    $("matchMessage").textContent =
+      "Pilih pertandingan.";
 
     return;
+
   }
 
 
-  box.innerHTML =
-    matches.map(match => {
+  if (
+    !Number.isInteger(score1) ||
+    !Number.isInteger(score2) ||
+    score1 < 0 ||
+    score2 < 0
+  ) {
 
-      let class1 = "draw";
-      let class2 = "draw";
+    $("matchMessage").textContent =
+      "Masukkan skor yang valid.";
 
+    return;
 
-      if (
-        match.score1 >
-        match.score2
-      ) {
-
-        class1 = "win";
-        class2 = "loss";
-
-      }
+  }
 
 
-      if (
-        match.score2 >
-        match.score1
-      ) {
-
-        class1 = "loss";
-        class2 = "win";
-
-      }
+  const fixture =
+    fixtures.find(
+      item => String(item.id) === String(fixtureId)
+    );
 
 
-      return `
+  if (!fixture) {
 
-        <div class="match-card">
+    $("matchMessage").textContent =
+      "Pertandingan tidak ditemukan.";
 
-          <small>
-            ${escapeHTML(match.status)}
-          </small>
+    return;
 
-          <div class="match-teams">
+  }
 
-            <span class="${class1}">
-              ${escapeHTML(match.team1)}
-            </span>
 
-            <strong>
-              ${match.score1} - ${match.score2}
-            </strong>
+  const { error: matchError } =
+    await supabaseClient
+      .from("matches")
+      .insert({
 
-            <span class="${class2}">
-              ${escapeHTML(match.team2)}
-            </span>
+        team1: fixture.team1,
 
-          </div>
+        score1: score1,
 
-        </div>
+        score2: score2,
 
-      `;
+        team2: fixture.team2,
 
-    }).join("");
+        status: "FT"
+
+      });
+
+
+  if (matchError) {
+
+    $("matchMessage").textContent =
+      matchError.message;
+
+    return;
+
+  }
+
+
+  const { error: fixtureError } =
+    await supabaseClient
+      .from("fixtures")
+      .update({
+        status: "PLAYED"
+      })
+      .eq("id", fixture.id);
+
+
+  if (fixtureError) {
+
+    $("matchMessage").textContent =
+      fixtureError.message;
+
+    return;
+
+  }
+
+
+  $("matchScore1").value = "";
+  $("matchScore2").value = "";
+
+  $("matchFixtureSelect").value = "";
+
+  $("matchMessage").textContent =
+    "Hasil berhasil disimpan.";
+
+
+  await loadFixtures();
+
+  await loadMatches();
+
 }
+
+
+$("addMatchBtn").addEventListener(
+  "click",
+  addMatch
+);
 
 
 /* =========================
    TABLE
 ========================= */
 
-function createStats(name) {
-
-  return {
-    name,
-    mp: 0,
-    w: 0,
-    d: 0,
-    l: 0,
-    gf: 0,
-    ga: 0,
-    gd: 0,
-    pts: 0
-  };
-
-}
-
-
 function calculateTable() {
 
-  const table = {};
+  const stats = {};
 
 
   teams.forEach(team => {
 
-    table[team.name] =
-      createStats(team.name);
+    stats[team.name] = {
+
+      name: team.name,
+
+      played: 0,
+
+      wins: 0,
+
+      draws: 0,
+
+      losses: 0,
+
+      gf: 0,
+
+      ga: 0,
+
+      gd: 0,
+
+      points: 0
+
+    };
 
   });
 
 
   matches.forEach(match => {
 
-    if (!table[match.team1]) {
+    if (!stats[match.team1]) return;
 
-      table[match.team1] =
-        createStats(match.team1);
-
-    }
+    if (!stats[match.team2]) return;
 
 
-    if (!table[match.team2]) {
+    const t1 =
+      stats[match.team1];
 
-      table[match.team2] =
-        createStats(match.team2);
-
-    }
-
-
-    const team1 =
-      table[match.team1];
-
-    const team2 =
-      table[match.team2];
+    const t2 =
+      stats[match.team2];
 
 
-    const score1 =
+    const s1 =
       Number(match.score1);
 
-    const score2 =
+    const s2 =
       Number(match.score2);
 
 
-    team1.mp++;
-    team2.mp++;
+    t1.played++;
+    t2.played++;
 
 
-    team1.gf += score1;
-    team1.ga += score2;
+    t1.gf += s1;
+    t1.ga += s2;
+
+    t2.gf += s2;
+    t2.ga += s1;
 
 
-    team2.gf += score2;
-    team2.ga += score1;
+    if (s1 > s2) {
 
+      t1.wins++;
+      t1.points += 3;
 
-    if (score1 > score2) {
-
-      team1.w++;
-      team1.pts += 3;
-
-      team2.l++;
+      t2.losses++;
 
     }
 
-    else if (score2 > score1) {
+    else if (s1 < s2) {
 
-      team2.w++;
-      team2.pts += 3;
+      t2.wins++;
+      t2.points += 3;
 
-      team1.l++;
+      t1.losses++;
 
     }
 
     else {
 
-      team1.d++;
-      team2.d++;
+      t1.draws++;
+      t2.draws++;
 
-      team1.pts++;
-      team2.pts++;
+      t1.points++;
+      t2.points++;
 
     }
 
   });
 
 
-  Object.values(table)
+  Object.values(stats)
     .forEach(team => {
 
       team.gd =
@@ -948,32 +840,54 @@ function calculateTable() {
 
 
   const sorted =
-    Object.values(table)
-      .sort((a, b) =>
+    Object.values(stats)
+      .sort((a, b) => {
 
-        b.pts - a.pts ||
+        if (b.points !== a.points)
+          return b.points - a.points;
 
-        b.gd - a.gd ||
+        if (b.gd !== a.gd)
+          return b.gd - a.gd;
 
-        b.gf - a.gf ||
+        return b.gf - a.gf;
 
-        a.name.localeCompare(b.name)
-
-      );
-
-
-  const body =
-    $("leagueTable");
+      });
 
 
-  if (!body) return;
-
-
-  body.innerHTML =
+  $("leagueTable").innerHTML =
     sorted.map((team, index) => {
 
-      const form =
-        getTeamForm(team.name);
+      const teamData =
+        teams.find(
+          item => item.name === team.name
+        );
+
+
+      let logoHTML;
+
+
+      if (teamData && teamData.logo) {
+
+        logoHTML = `
+          <img
+            class="team-logo"
+            src="${escapeHTML(teamData.logo)}"
+            alt="${escapeHTML(team.name)}"
+            onerror="this.style.display='none'"
+          >
+        `;
+
+      }
+
+      else {
+
+        logoHTML = `
+          <div class="team-logo team-logo-placeholder">
+            ⚽
+          </div>
+        `;
+
+      }
 
 
       return `
@@ -984,24 +898,32 @@ function calculateTable() {
             ${index + 1}
           </td>
 
+
           <td>
 
-            <button
-              class="team-name-btn"
-              data-team="${escapeHTML(team.name)}"
-            >
-              ${escapeHTML(team.name)}
-            </button>
+            <div class="team-cell">
+
+              ${logoHTML}
+
+              <button
+                class="team-name-btn"
+                data-team="${escapeHTML(team.name)}"
+              >
+                ${escapeHTML(team.name)}
+              </button>
+
+            </div>
 
           </td>
 
-          <td>${team.mp}</td>
 
-          <td>${team.w}</td>
+          <td>${team.played}</td>
 
-          <td>${team.d}</td>
+          <td>${team.wins}</td>
 
-          <td>${team.l}</td>
+          <td>${team.draws}</td>
+
+          <td>${team.losses}</td>
 
           <td>
             ${team.gd > 0 ? "+" : ""}
@@ -1009,19 +931,14 @@ function calculateTable() {
           </td>
 
           <td>
-            <strong>
-              ${team.pts}
-            </strong>
+            <strong>${team.points}</strong>
           </td>
 
+
           <td>
-
-            <div class="form-dots">
-
-              ${renderFormDots(form)}
-
-            </div>
-
+            ${renderFormDots(
+              getTeamForm(team.name)
+            )}
           </td>
 
         </tr>
@@ -1052,7 +969,7 @@ function calculateTable() {
 
 
 /* =========================
-   TEAM FORM
+   FORM
 ========================= */
 
 function getTeamForm(teamName) {
@@ -1066,8 +983,7 @@ function getTeamForm(teamName) {
 
     .sort(
       (a, b) =>
-        Number(a.id) -
-        Number(b.id)
+        Number(a.id) - Number(b.id)
     )
 
     .slice(-5)
@@ -1090,21 +1006,11 @@ function getTeamForm(teamName) {
           : Number(match.score1);
 
 
-      if (
-        forScore >
-        againstScore
-      ) {
+      if (forScore > againstScore)
         return "W";
-      }
 
-
-      if (
-        forScore <
-        againstScore
-      ) {
+      if (forScore < againstScore)
         return "L";
-      }
-
 
       return "D";
 
@@ -1117,53 +1023,32 @@ function renderFormDots(form) {
 
   if (!form.length) {
 
-    return `<span class="muted">-</span>`;
+    return `
+      <span class="form-dot">
+        -
+      </span>
+    `;
 
   }
 
 
-  return form
-    .map(result => {
+  return `
+    <div class="form-dots">
 
-      if (result === "W") {
+      ${form.map(result => {
 
-        return `
-          <span
-            class="form-dot form-win"
-            title="Menang"
-          >
-            🟢
-          </span>
-        `;
+        if (result === "W")
+          return `<span class="form-dot">🟢</span>`;
 
-      }
+        if (result === "D")
+          return `<span class="form-dot">🟡</span>`;
 
+        return `<span class="form-dot">🔴</span>`;
 
-      if (result === "D") {
+      }).join("")}
 
-        return `
-          <span
-            class="form-dot form-draw"
-            title="Seri"
-          >
-            🟡
-          </span>
-        `;
-
-      }
-
-
-      return `
-        <span
-          class="form-dot form-loss"
-          title="Kalah"
-        >
-          🔴
-        </span>
-      `;
-
-    })
-    .join("");
+    </div>
+  `;
 
 }
 
@@ -1172,34 +1057,18 @@ function renderFormDots(form) {
    TEAM DETAIL
 ========================= */
 
-let selectedTeamName = null;
-
-
 function showTeamDetail(teamName) {
 
-  selectedTeamName =
-    teamName;
+  selectedTeam = teamName;
+
+  $("teamDetail").classList.remove(
+    "hidden"
+  );
+
+  renderSelectedTeamDetail();
 
 
-  const detail =
-    $("teamDetail");
-
-
-  if (!detail) return;
-
-
-  detail.classList.remove("hidden");
-
-
-  $("teamDetailName")
-    .textContent =
-    teamName;
-
-
-  renderTeamDetail();
-
-
-  detail.scrollIntoView({
+  $("teamDetail").scrollIntoView({
     behavior: "smooth",
     block: "start"
   });
@@ -1209,167 +1078,172 @@ function showTeamDetail(teamName) {
 
 function renderSelectedTeamDetail() {
 
-  if (!selectedTeamName) return;
+  if (!selectedTeam) return;
 
-  const detail =
-    $("teamDetail");
 
-  if (!detail) return;
+  const team =
+    teams.find(
+      item => item.name === selectedTeam
+    );
 
-  if (
-    detail.classList.contains("hidden")
-  ) {
-    return;
+
+  if (!team) return;
+
+
+  $("teamDetailName").textContent =
+    team.name;
+
+
+  /* LOGO */
+
+  if (team.logo) {
+
+    $("teamDetailLogo").innerHTML = `
+
+      <img
+        class="team-detail-logo"
+        src="${escapeHTML(team.logo)}"
+        alt="${escapeHTML(team.name)}"
+      >
+
+    `;
+
   }
 
-  renderTeamDetail();
+  else {
 
-}
+    $("teamDetailLogo").innerHTML = `
 
+      <div class="team-detail-placeholder">
+        ⚽
+      </div>
 
-function renderTeamDetail() {
+    `;
 
-  const teamName =
-    selectedTeamName;
+  }
 
-  if (!teamName) return;
-
-
-  $("teamDetailName")
-    .textContent =
-    teamName;
-
-
-  /* STATISTIK */
 
   const stats =
-    calculateTeamStats(teamName);
+    calculateTeamStats(
+      selectedTeam
+    );
 
 
-  $("teamDetailSummary").innerHTML = `
+  $("teamDetailSummary").textContent =
+    `${stats.played} pertandingan • ${stats.points} poin`;
+
+
+  $("teamStatsBoxes").innerHTML = `
 
     <div class="stat-box">
-      <small>MP</small>
-      <strong>${stats.mp}</strong>
+      <strong>${stats.played}</strong>
+      <span>MP</span>
     </div>
 
     <div class="stat-box">
-      <small>W</small>
-      <strong>${stats.w}</strong>
+      <strong>${stats.wins}</strong>
+      <span>MENANG</span>
     </div>
 
     <div class="stat-box">
-      <small>D</small>
-      <strong>${stats.d}</strong>
+      <strong>${stats.draws}</strong>
+      <span>SERI</span>
     </div>
 
     <div class="stat-box">
-      <small>L</small>
-      <strong>${stats.l}</strong>
+      <strong>${stats.losses}</strong>
+      <span>KALAH</span>
     </div>
 
     <div class="stat-box">
-      <small>GF</small>
-      <strong>${stats.gf}</strong>
-    </div>
-
-    <div class="stat-box">
-      <small>GA</small>
-      <strong>${stats.ga}</strong>
-    </div>
-
-    <div class="stat-box">
-      <small>GD</small>
-      <strong>
-        ${stats.gd > 0 ? "+" : ""}
-        ${stats.gd}
-      </strong>
-    </div>
-
-    <div class="stat-box">
-      <small>PTS</small>
-      <strong>${stats.pts}</strong>
+      <strong>${stats.points}</strong>
+      <span>POIN</span>
     </div>
 
   `;
 
 
-  /* FORM */
-
   const form =
-    getTeamForm(teamName);
+    getTeamForm(selectedTeam);
 
 
   $("teamDetailForm").innerHTML =
     form.length
-      ? renderBigForm(form)
-      : `<span class="muted">Belum ada pertandingan.</span>`;
+      ? renderFormDots(form)
+      : `<span>-</span>`;
 
 
-  /* JADWAL */
+  /* SCHEDULE */
 
   const teamFixtures =
     fixtures.filter(fixture =>
-      fixture.status === "UPCOMING" &&
-      (
-        fixture.team1 === teamName ||
-        fixture.team2 === teamName
-      )
+      fixture.team1 === selectedTeam ||
+      fixture.team2 === selectedTeam
     );
 
 
-  if (!teamFixtures.length) {
+  const upcoming =
+    teamFixtures.filter(
+      fixture => fixture.status !== "PLAYED"
+    );
+
+
+  if (!upcoming.length) {
 
     $("teamDetailFixtures").innerHTML =
-      `<p class="muted">Tidak ada jadwal mendatang.</p>`;
+      `<div class="empty">
+        Tidak ada jadwal tersisa.
+      </div>`;
 
   }
 
   else {
 
     $("teamDetailFixtures").innerHTML =
-      teamFixtures.map(fixture => `
+      upcoming.map(fixture => {
 
-        <div class="match-card">
+        const opponent =
+          fixture.team1 === selectedTeam
+            ? fixture.team2
+            : fixture.team1;
 
-          <small>
-            MATCHDAY ${fixture.matchday}
-          </small>
 
-          <div class="match-teams">
+        return `
 
-            <span>
-              ${escapeHTML(fixture.team1)}
-            </span>
-
-            <strong>VS</strong>
+          <div class="match-item">
 
             <span>
-              ${escapeHTML(fixture.team2)}
+              Matchday ${fixture.matchday}
             </span>
+
+            <strong>
+              vs ${escapeHTML(opponent)}
+            </strong>
 
           </div>
 
-        </div>
+        `;
 
-      `).join("");
+      }).join("");
 
   }
 
 
-  /* HASIL */
+  /* RESULTS */
 
   const teamMatches =
     matches.filter(match =>
-      match.team1 === teamName ||
-      match.team2 === teamName
-    );
+      match.team1 === selectedTeam ||
+      match.team2 === selectedTeam
+    ).reverse();
 
 
   if (!teamMatches.length) {
 
     $("teamDetailResults").innerHTML =
-      `<p class="muted">Belum ada hasil pertandingan.</p>`;
+      `<div class="empty">
+        Belum ada hasil.
+      </div>`;
 
   }
 
@@ -1378,67 +1252,25 @@ function renderTeamDetail() {
     $("teamDetailResults").innerHTML =
       teamMatches.map(match => {
 
-        const isTeam1 =
-          match.team1 === teamName;
-
-
-        const myScore =
-          isTeam1
-            ? Number(match.score1)
-            : Number(match.score2);
-
-
-        const opponentScore =
-          isTeam1
-            ? Number(match.score2)
-            : Number(match.score1);
-
-
-        let resultClass =
-          "draw";
-
-
-        if (
-          myScore >
-          opponentScore
-        ) {
-          resultClass = "win";
-        }
-
-
-        if (
-          myScore <
-          opponentScore
-        ) {
-          resultClass = "loss";
-        }
-
-
         return `
 
-          <div class="match-card">
+          <div class="match-item">
 
-            <small>
-              ${escapeHTML(match.status)}
-            </small>
+            <span>
 
-            <div class="match-teams">
+              ${escapeHTML(match.team1)}
+              vs
+              ${escapeHTML(match.team2)}
 
-              <span>
-                ${escapeHTML(match.team1)}
-              </span>
+            </span>
 
-              <strong
-                class="${resultClass}"
-              >
-                ${match.score1} - ${match.score2}
-              </strong>
+            <span class="match-score">
 
-              <span>
-                ${escapeHTML(match.team2)}
-              </span>
+              ${match.score1}
+              -
+              ${match.score2}
 
-            </div>
+            </span>
 
           </div>
 
@@ -1451,205 +1283,168 @@ function renderTeamDetail() {
 }
 
 
-function renderBigForm(form) {
-
-  return form.map(result => {
-
-    if (result === "W") {
-
-      return `
-        <div
-          class="form-big form-win"
-          title="Menang"
-        >
-          🟢
-        </div>
-      `;
-
-    }
-
-
-    if (result === "D") {
-
-      return `
-        <div
-          class="form-big form-draw"
-          title="Seri"
-        >
-          🟡
-        </div>
-      `;
-
-    }
-
-
-    return `
-      <div
-        class="form-big form-loss"
-        title="Kalah"
-      >
-        🔴
-      </div>
-    `;
-
-  }).join("");
-
-}
-
+/* =========================
+   TEAM STATS
+========================= */
 
 function calculateTeamStats(teamName) {
 
-  const stats =
-    createStats(teamName);
+  const stats = {
+
+    played: 0,
+
+    wins: 0,
+
+    draws: 0,
+
+    losses: 0,
+
+    points: 0
+
+  };
 
 
-  matches
-    .filter(match =>
-      match.team1 === teamName ||
-      match.team2 === teamName
-    )
-    .forEach(match => {
+  matches.forEach(match => {
 
-      const isTeam1 =
-        match.team1 === teamName;
+    if (
+      match.team1 !== teamName &&
+      match.team2 !== teamName
+    ) return;
 
 
-      const myScore =
-        isTeam1
-          ? Number(match.score1)
-          : Number(match.score2);
+    stats.played++;
 
 
-      const opponentScore =
-        isTeam1
-          ? Number(match.score2)
-          : Number(match.score1);
+    const isTeam1 =
+      match.team1 === teamName;
 
 
-      stats.mp++;
-
-      stats.gf += myScore;
-
-      stats.ga += opponentScore;
-
-
-      if (
-        myScore >
-        opponentScore
-      ) {
-
-        stats.w++;
-        stats.pts += 3;
-
-      }
-
-      else if (
-        myScore <
-        opponentScore
-      ) {
-
-        stats.l++;
-
-      }
-
-      else {
-
-        stats.d++;
-        stats.pts++;
-
-      }
-
-    });
+    const ownScore =
+      isTeam1
+        ? Number(match.score1)
+        : Number(match.score2);
 
 
-  stats.gd =
-    stats.gf - stats.ga;
+    const opponentScore =
+      isTeam1
+        ? Number(match.score2)
+        : Number(match.score1);
 
 
-  return stats;
-}
+    if (ownScore > opponentScore) {
 
+      stats.wins++;
+      stats.points += 3;
 
-/* CLOSE TEAM DETAIL */
+    }
 
-$("closeTeamDetail")
-  .addEventListener("click", () => {
+    else if (
+      ownScore === opponentScore
+    ) {
 
-    $("teamDetail")
-      .classList.add("hidden");
+      stats.draws++;
+      stats.points++;
 
-    selectedTeamName = null;
+    }
+
+    else {
+
+      stats.losses++;
+
+    }
 
   });
 
 
-/* =========================
-   ADMIN AUTH
-========================= */
-
-function setAdminState(loggedIn) {
-
-  $("loginBox")
-    .classList.toggle(
-      "hidden",
-      loggedIn
-    );
-
-
-  $("adminPanel")
-    .classList.toggle(
-      "hidden",
-      !loggedIn
-    );
+  return stats;
 
 }
 
+
+/* =========================
+   CLOSE DETAIL
+========================= */
+
+$("closeTeamDetail").addEventListener(
+  "click",
+  () => {
+
+    selectedTeam = null;
+
+    $("teamDetail")
+      .classList.add("hidden");
+
+  }
+);
+
+
+/* =========================
+   AUTH
+========================= */
 
 async function checkSession() {
 
-  const { data } =
-    await supabaseClient.auth
-      .getSession();
+  const {
+    data: {
+      session
+    }
+  } = await supabaseClient.auth.getSession();
 
 
-  setAdminState(
-    !!data.session
-  );
+  if (session) {
+
+    showAdminPanel(session);
+
+  }
+
+  else {
+
+    showLogin();
+
+  }
 
 }
 
 
+function showLogin() {
+
+  $("loginBox")
+    .classList.remove("hidden");
+
+  $("adminPanel")
+    .classList.add("hidden");
+
+}
+
+
+function showAdminPanel(session) {
+
+  $("loginBox")
+    .classList.add("hidden");
+
+  $("adminPanel")
+    .classList.remove("hidden");
+
+}
+
+
+/* =========================
+   LOGIN
+========================= */
+
 async function login() {
 
-  const message =
-    $("loginMessage");
-
-
   const email =
-    $("loginEmail")
-      .value
-      .trim();
-
+    $("loginEmail").value.trim();
 
   const password =
-    $("loginPassword")
-      .value;
+    $("loginPassword").value;
 
 
-  if (!email || !password) {
-
-    message.textContent =
-      "Masukkan email dan password.";
-
-    return;
-  }
-
-
-  message.textContent =
-    "Memproses login...";
-
-
-  const { error } =
+  const {
+    data,
+    error
+  } =
     await supabaseClient.auth
       .signInWithPassword({
         email,
@@ -1659,91 +1454,65 @@ async function login() {
 
   if (error) {
 
-    console.error(error);
-
-    message.textContent =
-      "Login gagal: " +
+    $("loginMessage").textContent =
       error.message;
 
     return;
+
   }
 
 
-  message.textContent =
+  if (
+    ADMIN_UUID !== "ADMIN-UUID-DI-SINI" &&
+    data.user.id !== ADMIN_UUID
+  ) {
+
+    await supabaseClient.auth.signOut();
+
+    $("loginMessage").textContent =
+      "Akun ini bukan admin.";
+
+    return;
+
+  }
+
+
+  $("loginMessage").textContent =
     "Login berhasil.";
 
-  setAdminState(true);
+
+  showAdminPanel(data.session);
 
 }
 
+
+$("loginBtn").addEventListener(
+  "click",
+  login
+);
+
+
+/* =========================
+   LOGOUT
+========================= */
 
 async function logout() {
 
-  await supabaseClient.auth
-    .signOut();
+  await supabaseClient.auth.signOut();
 
-  setAdminState(false);
+  showLogin();
 
 }
 
 
-/* =========================
-   EVENTS
-========================= */
-
-$("addTeamBtn")
-  .addEventListener(
-    "click",
-    addTeam
-  );
-
-
-$("generateFixturesBtn")
-  .addEventListener(
-    "click",
-    generateFixtures
-  );
-
-
-$("addMatchBtn")
-  .addEventListener(
-    "click",
-    addMatch
-  );
-
-
-$("loginBtn")
-  .addEventListener(
-    "click",
-    login
-  );
-
-
-$("logoutBtn")
-  .addEventListener(
-    "click",
-    logout
-  );
+$("logoutBtn").addEventListener(
+  "click",
+  logout
+);
 
 
 /* =========================
-   AUTH STATE
-========================= */
-
-supabaseClient.auth
-  .onAuthStateChange(
-    (_event, session) => {
-
-      setAdminState(
-        !!session
-      );
-
-    }
-  );
-
-
-/* =========================
-   INIT
+   INITIALIZE
 ========================= */
 
 async function init() {
@@ -1760,4 +1529,3 @@ async function init() {
 
 
 init();
-          
