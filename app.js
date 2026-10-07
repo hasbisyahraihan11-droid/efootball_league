@@ -132,6 +132,147 @@ function renderTeamList() {
 
           ${logo}
 
+          <span class="admin-team-name">
+            ${escapeHTML(team.name)}
+          </span>
+
+          <button
+            class="delete-team-btn"
+            data-id="${team.id}"
+          >
+            Hapus
+          </button>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  document
+    .querySelectorAll(".delete-team-btn")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => deleteTeam(button.dataset.id)
+      );
+
+    });
+
+  }
+
+    $("teamAdminList").innerHTML =
+      `<div class="empty">Belum ada tim.</div>`;
+
+    return;
+
+  }
+
+  async function deleteTeam(teamId) {
+
+  const team =
+    teams.find(
+      item => String(item.id) === String(teamId)
+    );
+
+  if (!team) return;
+
+
+  const yakin = confirm(
+    `Hapus "${team.name}" beserta jadwal dan hasil pertandingannya?`
+  );
+
+  if (!yakin) return;
+
+
+  // Hapus hasil pertandingan
+  const { error: matchError } =
+    await supabaseClient
+      .from("matches")
+      .delete()
+      .or(
+        `team1.eq.${team.name},team2.eq.${team.name}`
+      );
+
+
+  if (matchError) {
+
+    $("teamMessage").textContent =
+      "Gagal menghapus hasil: " +
+      matchError.message;
+
+    return;
+
+  }
+
+
+  // Hapus jadwal pertandingan
+  const { error: fixtureError } =
+    await supabaseClient
+      .from("fixtures")
+      .delete()
+      .or(
+        `team1.eq.${team.name},team2.eq.${team.name}`
+      );
+
+
+  if (fixtureError) {
+
+    $("teamMessage").textContent =
+      "Gagal menghapus jadwal: " +
+      fixtureError.message;
+
+    return;
+
+  }
+
+
+  // Hapus tim
+  const { error: teamError } =
+    await supabaseClient
+      .from("teams")
+      .delete()
+      .eq("id", teamId);
+
+
+  if (teamError) {
+
+    $("teamMessage").textContent =
+      "Gagal menghapus tim: " +
+      teamError.message;
+
+    return;
+
+  }
+
+
+  selectedTeam = null;
+
+
+  $("teamMessage").textContent =
+    `"${team.name}" berhasil dihapus beserta jadwal dan hasilnya.`;
+
+
+  await loadTeams();
+  await loadFixtures();
+  await loadMatches();
+
+  }
+
+  $("teamAdminList").innerHTML =
+    teams.map(team => {
+
+      const logo = team.logo
+        ? `<img src="${escapeHTML(team.logo)}" alt="">`
+        : `<div class="team-logo-placeholder">⚽</div>`;
+
+
+      return `
+        <div class="admin-team">
+
+          ${logo}
+
           <span>
             ${escapeHTML(team.name)}
           </span>
