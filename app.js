@@ -1420,4 +1420,344 @@ function renderTeamDetail() {
 
             <small>
               ${escapeHTML(match.status)}
+            </small>
+
+            <div class="match-teams">
+
+              <span>
+                ${escapeHTML(match.team1)}
+              </span>
+
+              <strong
+                class="${resultClass}"
+              >
+                ${match.score1} - ${match.score2}
+              </strong>
+
+              <span>
+                ${escapeHTML(match.team2)}
+              </span>
+
+            </div>
+
+          </div>
+
+        `;
+
+      }).join("");
+
+  }
+
+}
+
+
+function renderBigForm(form) {
+
+  return form.map(result => {
+
+    if (result === "W") {
+
+      return `
+        <div
+          class="form-big form-win"
+          title="Menang"
+        >
+          🟢
+        </div>
+      `;
+
+    }
+
+
+    if (result === "D") {
+
+      return `
+        <div
+          class="form-big form-draw"
+          title="Seri"
+        >
+          🟡
+        </div>
+      `;
+
+    }
+
+
+    return `
+      <div
+        class="form-big form-loss"
+        title="Kalah"
+      >
+        🔴
+      </div>
+    `;
+
+  }).join("");
+
+}
+
+
+function calculateTeamStats(teamName) {
+
+  const stats =
+    createStats(teamName);
+
+
+  matches
+    .filter(match =>
+      match.team1 === teamName ||
+      match.team2 === teamName
+    )
+    .forEach(match => {
+
+      const isTeam1 =
+        match.team1 === teamName;
+
+
+      const myScore =
+        isTeam1
+          ? Number(match.score1)
+          : Number(match.score2);
+
+
+      const opponentScore =
+        isTeam1
+          ? Number(match.score2)
+          : Number(match.score1);
+
+
+      stats.mp++;
+
+      stats.gf += myScore;
+
+      stats.ga += opponentScore;
+
+
+      if (
+        myScore >
+        opponentScore
+      ) {
+
+        stats.w++;
+        stats.pts += 3;
+
+      }
+
+      else if (
+        myScore <
+        opponentScore
+      ) {
+
+        stats.l++;
+
+      }
+
+      else {
+
+        stats.d++;
+        stats.pts++;
+
+      }
+
+    });
+
+
+  stats.gd =
+    stats.gf - stats.ga;
+
+
+  return stats;
+}
+
+
+/* CLOSE TEAM DETAIL */
+
+$("closeTeamDetail")
+  .addEventListener("click", () => {
+
+    $("teamDetail")
+      .classList.add("hidden");
+
+    selectedTeamName = null;
+
+  });
+
+
+/* =========================
+   ADMIN AUTH
+========================= */
+
+function setAdminState(loggedIn) {
+
+  $("loginBox")
+    .classList.toggle(
+      "hidden",
+      loggedIn
+    );
+
+
+  $("adminPanel")
+    .classList.toggle(
+      "hidden",
+      !loggedIn
+    );
+
+}
+
+
+async function checkSession() {
+
+  const { data } =
+    await supabaseClient.auth
+      .getSession();
+
+
+  setAdminState(
+    !!data.session
+  );
+
+}
+
+
+async function login() {
+
+  const message =
+    $("loginMessage");
+
+
+  const email =
+    $("loginEmail")
+      .value
+      .trim();
+
+
+  const password =
+    $("loginPassword")
+      .value;
+
+
+  if (!email || !password) {
+
+    message.textContent =
+      "Masukkan email dan password.";
+
+    return;
+  }
+
+
+  message.textContent =
+    "Memproses login...";
+
+
+  const { error } =
+    await supabaseClient.auth
+      .signInWithPassword({
+        email,
+        password
+      });
+
+
+  if (error) {
+
+    console.error(error);
+
+    message.textContent =
+      "Login gagal: " +
+      error.message;
+
+    return;
+  }
+
+
+  message.textContent =
+    "Login berhasil.";
+
+  setAdminState(true);
+
+}
+
+
+async function logout() {
+
+  await supabaseClient.auth
+    .signOut();
+
+  setAdminState(false);
+
+}
+
+
+/* =========================
+   EVENTS
+========================= */
+
+$("addTeamBtn")
+  .addEventListener(
+    "click",
+    addTeam
+  );
+
+
+$("generateFixturesBtn")
+  .addEventListener(
+    "click",
+    generateFixtures
+  );
+
+
+$("addMatchBtn")
+  .addEventListener(
+    "click",
+    addMatch
+  );
+
+
+$("loginBtn")
+  .addEventListener(
+    "click",
+    login
+  );
+
+
+$("logoutBtn")
+  .addEventListener(
+    "click",
+    logout
+  );
+
+
+/* =========================
+   AUTH STATE
+========================= */
+
+supabaseClient.auth
+  .onAuthStateChange(
+    (_event, session) => {
+
+      setAdminState(
+        !!session
+      );
+
+    }
+  );
+
+
+/* =========================
+   INIT
+========================= */
+
+async function init() {
+
+  await loadTeams();
+
+  await loadFixtures();
+
+  await loadMatches();
+
+  await checkSession();
+
+}
+
+
+init();
           
