@@ -1043,24 +1043,9 @@ function renderFormDots(form) {
 
   }
 
-
   return `
     <div class="form-dots">
-
-      ${form.map(result => {
-
-        if (result === "W")
-          return `<span class="form-dot">🟢</span>`;
-
-        if (result === "D")
-          return `<span class="form-dot">🟡</span>`;
-
-        return `<span class="form-dot">🔴</span>`;
-
       }).join("")}
-
-    </div>
-  `;
 
 }
 
