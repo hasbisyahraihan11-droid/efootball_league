@@ -1358,7 +1358,3 @@ function escapeHTML(value) {
 
 const loginBtn =
   document.getElementById(
-    "loginBtn"
-  );
-
-                       
