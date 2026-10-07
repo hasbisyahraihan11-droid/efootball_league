@@ -3,337 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>eFootball League ID</title>
-
+  <title>eFootball League</title>
   <link rel="stylesheet" href="style.css">
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
   <aside class="sidebar">
-
     <div class="logo">
       <div class="logo-ball">⚽</div>
       <div>
-        <b>eFOOTBALL</b>
-        <small>LEAGUE ID</small>
+        <strong>eFOOTBALL</strong>
+        <span>LEAGUE</span>
       </div>
     </div>
 
-    <button class="menu active" onclick="showPage('home', this)">
-      🏠 Home
-    </button>
+    <nav>
+      <button class="nav-btn active" onclick="showPage('home', this)">🏠 Home</button>
+      <button class="nav-btn" onclick="showPage('table', this)">🏆 Klasemen</button>
+      <button class="nav-btn" onclick="showPage('matches', this)">⚽ Pertandingan</button>
+      <button class="nav-btn" onclick="showPage('admin', this)">🔐 Admin</button>
+    </nav>
 
-    <button class="menu" onclick="showPage('table', this)">
-      🏆 Klasemen
-    </button>
-
-    <button class="menu" onclick="showPage('matches', this)">
-      ⚽ Pertandingan
-    </button>
-
-    <button class="menu" onclick="showPage('admin', this)">
-      ⚙️ Admin
-    </button>
-
-    <div class="online">
-      <span></span> SERVER ONLINE
+    <div class="sidebar-bottom">
+      <span>LIVE LEAGUE</span>
+      <small>Powered by Supabase</small>
     </div>
-
   </aside>
 
-
-  <main class="content">
-
-    <header>
-      <div>
-        <small>eFOOTBALL COMMUNITY</small>
-        <h1 id="pageTitle">Dashboard</h1>
-      </div>
-
-      <div class="live">
-        <span></span> LIVE
-      </div>
-    </header>
-
+  <main class="main">
 
     <!-- HOME -->
-
     <section id="home" class="page active">
-
       <div class="hero">
+        <div class="hero-content">
+          <span class="hero-tag">⚡ SEASON 2026</span>
+          <h1>eFOOTBALL<br><span>LEAGUE</span></h1>
+          <p>Kompetisi eFootball dengan sistem klasemen dan pertandingan realtime.</p>
 
-        <div>
-          <p>WELCOME TO</p>
-
-          <h2>
-            eFOOTBALL<br>
-            <span>LEAGUE ID</span>
-          </h2>
-
-          <p class="desc">
-            Kompetisi eFootball dengan klasemen,
-            statistik pertandingan dan ranking secara realtime.
-          </p>
-
-          <button
-            class="main-btn"
-            onclick="showPage('table')"
-          >
-            🏆 LIHAT KLASEMEN
+          <button class="hero-button" onclick="showPage('table')">
+            LIHAT KLASEMEN →
           </button>
         </div>
 
-        <div class="big-ball">⚽</div>
-
+        <div class="hero-ball">⚽</div>
       </div>
-
 
       <div class="stats">
-
-        <div class="stat">
+        <div class="stat-card">
           <span>⚽</span>
           <div>
-            <small>PERTANDINGAN</small>
-            <b id="totalMatches">0</b>
+            <small>TOTAL MATCH</small>
+            <strong id="totalMatches">0</strong>
           </div>
         </div>
 
-        <div class="stat">
+        <div class="stat-card">
           <span>👥</span>
           <div>
-            <small>TEAM</small>
-            <b id="totalTeams">0</b>
+            <small>TOTAL TEAM</small>
+            <strong id="totalTeams">0</strong>
           </div>
         </div>
 
-        <div class="stat">
-          <span>🟢</span>
+        <div class="stat-card">
+          <span>🔥</span>
           <div>
             <small>STATUS</small>
-            <b>LIVE</b>
+            <strong class="live-text">LIVE</strong>
           </div>
         </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- TABLE -->
-
-    <section id="table" class="page">
-
-      <div class="title">
-        <small>LEAGUE TABLE</small>
-        <h2>🏆 Klasemen Liga</h2>
-      </div>
-
-      <div class="table-wrap">
-
-        <table>
-
-          <thead>
-            <tr>
-              <th>POS</th>
-              <th>TEAM</th>
-              <th>MP</th>
-              <th>W</th>
-              <th>D</th>
-              <th>L</th>
-              <th>GF</th>
-              <th>GA</th>
-              <th>GD</th>
-              <th>PTS</th>
-            </tr>
-          </thead>
-
-          <tbody id="leagueTable">
-
-            <tr>
-              <td colspan="10">
-                Memuat klasemen...
-              </td>
-            </tr>
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-      <div class="legend">
-
-        <b>MP</b> Main &nbsp;
-        <b>W</b> Menang &nbsp;
-        <b>D</b> Seri &nbsp;
-        <b>L</b> Kalah &nbsp;
-        <b>GF</b> Gol &nbsp;
-        <b>GA</b> Kemasukan &nbsp;
-        <b>GD</b> Selisih Gol &nbsp;
-        <b>PTS</b> Poin
-
-      </div>
-
-    </section>
-
-
-    <!-- MATCHES -->
-
-    <section id="matches" class="page">
-
-      <div class="title">
-        <small>MATCH CENTER</small>
-        <h2>⚽ Pertandingan Terbaru</h2>
-      </div>
-
-      <div id="matchList">
-
-        <div class="loading">
-          Memuat pertandingan...
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- ADMIN -->
-
-    <section id="admin" class="page">
-
-      <div class="title">
-        <small>PRIVATE AREA</small>
-        <h2>⚙️ Admin</h2>
-      </div>
-
-
-      <!-- LOGIN -->
-
-      <div id="loginBox" class="admin-box">
-
-        <div class="lock">🔐</div>
-
-        <h2>Admin Login</h2>
-
-        <p>Login untuk menambahkan pertandingan.</p>
-
-        <input
-          type="email"
-          id="loginEmail"
-          placeholder="Email admin"
-        >
-
-        <input
-          type="password"
-          id="loginPassword"
-          placeholder="Password"
-        >
-
-        <button
-          class="main-btn full"
-          onclick="loginAdmin()"
-        >
-          LOGIN
-        </button>
-
-        <p id="loginMessage"></p>
-
-      </div>
-
-
-      <!-- ADMIN PANEL -->
-
-      <div
-        id="adminPanel"
-        class="admin-box"
-        style="display:none;"
-      >
-
-        <div class="admin-head">
-          <div>
-            <small>ADMIN PANEL</small>
-            <h2>Tambah Pertandingan</h2>
-          </div>
-
-          <span class="logged">● ONLINE</span>
-        </div>
-
-
-        <label>TEAM 1</label>
-
-        <input
-          type="text"
-          id="team1"
-          placeholder="Contoh: Barcelona"
-        >
-
-
-        <div class="score-row">
-
-          <div>
-            <label>SKOR</label>
-
-            <input
-              type="number"
-              id="score1"
-              min="0"
-              value="0"
-            >
-          </div>
-
-          <strong>VS</strong>
-
-          <div>
-            <label>SKOR</label>
-
-            <input
-              type="number"
-              id="score2"
-              min="0"
-              value="0"
-            >
-          </div>
-
-        </div>
-
-
-        <label>TEAM 2</label>
-
-        <input
-          type="text"
-          id="team2"
-          placeholder="Contoh: Real Madrid"
-        >
-
-
-        <button
-          class="main-btn full"
-          onclick="addMatch()"
-        >
-          ⚽ SIMPAN HASIL
-        </button>
-
-        <button
-          class="logout"
-          onclick="logoutAdmin()"
-        >
-          LOGOUT
-        </button>
-
-        <p id="message"></p>
-
-      </div>
-
-    </section>
-
-  </main>
-
-
-  <script src="app.js"></script>
-
-</body>
-</html>
