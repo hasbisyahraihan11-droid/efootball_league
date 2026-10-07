@@ -223,12 +223,174 @@ function renderTeamList() {
       "Gagal menghapus jadwal: " +
       fixtureError.message;
 
+/* =========================
+   ADMIN TEAM LIST
+========================= */
+
+function renderTeamList() {
+
+  if (!teams.length) {
+
+    $("teamAdminList").innerHTML =
+      `<div class="empty">Belum ada tim.</div>`;
+
     return;
 
   }
 
 
-  // Hapus tim
+  $("teamAdminList").innerHTML =
+    teams.map(team => {
+
+      const logo = team.logo
+        ? `<img src="${escapeHTML(team.logo)}" alt="">`
+        : `<div class="team-logo-placeholder">⚽</div>`;
+
+
+      return `
+        <div class="admin-team">
+
+          ${logo}
+
+          <span class="admin-team-name">
+            ${escapeHTML(team.name)}
+          </span>
+
+          <button
+            type="button"
+            class="delete-team-btn"
+            data-id="${team.id}"
+          >
+            Hapus
+          </button>
+
+        </div>
+      `;
+
+    }).join("");
+
+
+  document
+    .querySelectorAll(".delete-team-btn")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => deleteTeam(button.dataset.id)
+      );
+
+    });
+
+}
+
+
+/* =========================
+   DELETE TEAM
+========================= */
+
+async function deleteTeam(teamId) {
+
+  const team =
+    teams.find(
+      item => String(item.id) === String(teamId)
+    );
+
+  if (!team) return;
+
+
+  const yakin = confirm(
+    `Hapus "${team.name}" beserta jadwal dan hasil pertandingannya?`
+  );
+
+  if (!yakin) return;
+
+
+  $("teamMessage").textContent =
+    "Menghapus tim...";
+
+
+  /* HAPUS HASIL TEAM 1 */
+
+  const { error: matchError1 } =
+    await supabaseClient
+      .from("matches")
+      .delete()
+      .eq("team1", team.name);
+
+
+  if (matchError1) {
+
+    $("teamMessage").textContent =
+      "Gagal menghapus hasil: " +
+      matchError1.message;
+
+    return;
+
+  }
+
+
+  /* HAPUS HASIL TEAM 2 */
+
+  const { error: matchError2 } =
+    await supabaseClient
+      .from("matches")
+      .delete()
+      .eq("team2", team.name);
+
+
+  if (matchError2) {
+
+    $("teamMessage").textContent =
+      "Gagal menghapus hasil: " +
+      matchError2.message;
+
+    return;
+
+  }
+
+
+  /* HAPUS JADWAL TEAM 1 */
+
+  const { error: fixtureError1 } =
+    await supabaseClient
+      .from("fixtures")
+      .delete()
+      .eq("team1", team.name);
+
+
+  if (fixtureError1) {
+
+    $("teamMessage").textContent =
+      "Gagal menghapus jadwal: " +
+      fixtureError1.message;
+
+    return;
+
+  }
+
+
+  /* HAPUS JADWAL TEAM 2 */
+
+  const { error: fixtureError2 } =
+    await supabaseClient
+      .from("fixtures")
+      .delete()
+      .eq("team2", team.name);
+
+
+  if (fixtureError2) {
+
+    $("teamMessage").textContent =
+      "Gagal menghapus jadwal: " +
+      fixtureError2.message;
+
+    return;
+
+  }
+
+
+  /* HAPUS TEAM */
+
   const { error: teamError } =
     await supabaseClient
       .from("teams")
@@ -255,35 +417,12 @@ function renderTeamList() {
 
 
   await loadTeams();
+
   await loadFixtures();
+
   await loadMatches();
 
-  }
-
-  $("teamAdminList").innerHTML =
-    teams.map(team => {
-
-      const logo = team.logo
-        ? `<img src="${escapeHTML(team.logo)}" alt="">`
-        : `<div class="team-logo-placeholder">⚽</div>`;
-
-
-      return `
-        <div class="admin-team">
-
-          ${logo}
-
-          <span>
-            ${escapeHTML(team.name)}
-          </span>
-
-        </div>
-      `;
-
-    }).join("");
-
 }
-
 
 /* =========================
    ADD TEAM
