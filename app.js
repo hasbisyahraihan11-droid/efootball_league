@@ -102,6 +102,7 @@ async function loadTeams() {
 
 }
 
+
 /* =========================
    ADMIN TEAM LIST
 ========================= */
@@ -109,12 +110,9 @@ async function loadTeams() {
 function renderTeamList() {
 
   if (!teams.length) {
-
     $("teamAdminList").innerHTML =
       `<div class="empty">Belum ada tim.</div>`;
-
     return;
-
   }
 
   $("teamAdminList").innerHTML =
@@ -146,7 +144,6 @@ function renderTeamList() {
 
     }).join("");
 
-
   document
     .querySelectorAll(".delete-team-btn")
     .forEach(button => {
@@ -167,13 +164,11 @@ function renderTeamList() {
 
 async function deleteTeam(teamId) {
 
-  const team =
-    teams.find(
-      item => String(item.id) === String(teamId)
-    );
+  const team = teams.find(
+    item => String(item.id) === String(teamId)
+  );
 
   if (!team) return;
-
 
   const yakin = confirm(
     `Hapus "${team.name}" beserta jadwal dan hasil pertandingannya?`
@@ -181,12 +176,9 @@ async function deleteTeam(teamId) {
 
   if (!yakin) return;
 
-
   $("teamMessage").textContent =
     "Menghapus tim...";
 
-
-  /* HAPUS HASIL TEAM 1 */
 
   const { error: matchError1 } =
     await supabaseClient
@@ -194,19 +186,13 @@ async function deleteTeam(teamId) {
       .delete()
       .eq("team1", team.name);
 
-
   if (matchError1) {
-
     $("teamMessage").textContent =
       "Gagal menghapus hasil: " +
       matchError1.message;
-
     return;
-
   }
 
-
-  /* HAPUS HASIL TEAM 2 */
 
   const { error: matchError2 } =
     await supabaseClient
@@ -214,19 +200,13 @@ async function deleteTeam(teamId) {
       .delete()
       .eq("team2", team.name);
 
-
   if (matchError2) {
-
     $("teamMessage").textContent =
       "Gagal menghapus hasil: " +
       matchError2.message;
-
     return;
-
   }
 
-
-  /* HAPUS JADWAL TEAM 1 */
 
   const { error: fixtureError1 } =
     await supabaseClient
@@ -234,19 +214,13 @@ async function deleteTeam(teamId) {
       .delete()
       .eq("team1", team.name);
 
-
   if (fixtureError1) {
-
     $("teamMessage").textContent =
       "Gagal menghapus jadwal: " +
       fixtureError1.message;
-
     return;
-
   }
 
-
-  /* HAPUS JADWAL TEAM 2 */
 
   const { error: fixtureError2 } =
     await supabaseClient
@@ -254,19 +228,13 @@ async function deleteTeam(teamId) {
       .delete()
       .eq("team2", team.name);
 
-
   if (fixtureError2) {
-
     $("teamMessage").textContent =
       "Gagal menghapus jadwal: " +
       fixtureError2.message;
-
     return;
-
   }
 
-
-  /* HAPUS TEAM */
 
   const { error: teamError } =
     await supabaseClient
@@ -274,32 +242,25 @@ async function deleteTeam(teamId) {
       .delete()
       .eq("id", teamId);
 
-
   if (teamError) {
-
     $("teamMessage").textContent =
       "Gagal menghapus tim: " +
       teamError.message;
-
     return;
-
   }
 
 
   selectedTeam = null;
 
-
   $("teamMessage").textContent =
     `"${team.name}" berhasil dihapus beserta jadwal dan hasilnya.`;
 
-
   await loadTeams();
-
   await loadFixtures();
-
   await loadMatches();
 
 }
+
 
 /* =========================
    ADD TEAM
