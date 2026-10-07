@@ -1016,10 +1016,29 @@ function getTeamForm(teamName) {
 
     });
 
-}
-
-
 function renderFormDots(form) {
+  if (!form || form.length === 0) {
+    return `<span class="form-empty">-</span>`;
+  }
+
+  return form.map(result => {
+    let letter = "";
+    let className = "";
+
+    if (result === "W") {
+      letter = "M"; // Menang
+      className = "win";
+    } else if (result === "D") {
+      letter = "S"; // Seri
+      className = "draw";
+    } else if (result === "L") {
+      letter = "L"; // Kalah
+      className = "loss";
+    }
+
+    return `<span class="form-dot ${className}">${letter}</span>`;
+  }).join("");
+}
 
   if (!form.length) {
 
