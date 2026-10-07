@@ -1586,4 +1586,392 @@ async function login() {
 
   const email =
     document.getElementById(
-      "loginEma
+      "loginEmail"
+    ).value.trim();
+
+
+  const password =
+    document.getElementById(
+      "loginPassword"
+    ).value;
+
+
+  const message =
+    document.getElementById(
+      "loginMessage"
+    );
+
+
+  message.textContent =
+    "Memproses login...";
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .auth
+      .signInWithPassword({
+
+        email:
+          email,
+
+        password:
+          password
+
+      });
+
+
+  if (error) {
+
+    console.error(
+      "LOGIN ERROR:",
+      error
+    );
+
+    message.textContent =
+      "Login gagal: " +
+      error.message;
+
+    return;
+  }
+
+
+  message.textContent =
+    "Login berhasil.";
+
+
+  updateAdminUI(
+    data.session
+  );
+
+
+  await loadTeams();
+
+}
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+async function logout() {
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .auth
+      .signOut();
+
+
+  if (error) {
+
+    console.error(
+      "LOGOUT ERROR:",
+      error
+    );
+
+    return;
+  }
+
+
+  updateAdminUI(
+    null
+  );
+
+}
+
+
+/* =====================================================
+   STATS
+===================================================== */
+
+function updateStats() {
+
+  const totalTeams =
+    document.getElementById(
+      "totalTeams"
+    );
+
+
+  const totalMatches =
+    document.getElementById(
+      "totalMatches"
+    );
+
+
+  const playedMatches =
+    document.getElementById(
+      "playedMatches"
+    );
+
+
+  if (totalTeams) {
+
+    totalTeams.textContent =
+      teams.length;
+
+  }
+
+
+  if (totalMatches) {
+
+    totalMatches.textContent =
+      getUpcomingFixtures()
+        .length;
+
+  }
+
+
+  if (playedMatches) {
+
+    playedMatches.textContent =
+      matches.length;
+
+  }
+
+}
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function formatDate(
+  date
+) {
+
+  return new Date(
+    date
+  ).toLocaleString(
+    "id-ID",
+    {
+      dateStyle:
+        "medium",
+
+      timeStyle:
+        "short"
+    }
+  );
+
+}
+
+
+function escapeHTML(
+  value
+) {
+
+  return String(
+    value
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+
+}
+
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+document
+  .getElementById(
+    "loginBtn"
+  )
+  .addEventListener(
+    "click",
+    login
+  );
+
+
+document
+  .getElementById(
+    "logoutBtn"
+  )
+  .addEventListener(
+    "click",
+    logout
+  );
+
+
+document
+  .getElementById(
+    "addTeamBtn"
+  )
+  .addEventListener(
+    "click",
+    addTeam
+  );
+
+
+document
+  .getElementById(
+    "generateFixturesBtn"
+  )
+  .addEventListener(
+    "click",
+    generateFixtures
+  );
+
+
+document
+  .getElementById(
+    "addMatchBtn"
+  )
+  .addEventListener(
+    "click",
+    addMatch
+  );
+
+
+document
+  .getElementById(
+    "teamNameInput"
+  )
+  .addEventListener(
+    "keydown",
+    event => {
+
+      if (
+        event.key ===
+        "Enter"
+      ) {
+
+        addTeam();
+
+      }
+
+    }
+  );
+
+
+/* =====================================================
+   REALTIME
+===================================================== */
+
+supabaseClient
+  .channel(
+    "teams-realtime"
+  )
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "teams"
+    },
+    async () => {
+
+      await loadTeams();
+
+    }
+  )
+  .subscribe();
+
+
+supabaseClient
+  .channel(
+    "fixtures-realtime"
+  )
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "fixtures"
+    },
+    async () => {
+
+      await loadFixtures();
+
+    }
+  )
+  .subscribe();
+
+
+supabaseClient
+  .channel(
+    "matches-realtime"
+  )
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "matches"
+    },
+    async () => {
+
+      await loadMatches();
+
+    }
+  )
+  .subscribe();
+
+
+/* =====================================================
+   AUTH STATE
+===================================================== */
+
+supabaseClient
+  .auth
+  .onAuthStateChange(
+    (_event, session) => {
+
+      updateAdminUI(
+        session
+      );
+
+    }
+  );
+
+
+/* =====================================================
+   INIT
+===================================================== */
+
+async function init() {
+
+  /*
+    Urutan penting:
+    fixtures dulu,
+    supaya sistem tahu apakah
+    jadwal sudah ada.
+  */
+
+  await loadFixtures();
+
+  await loadTeams();
+
+  await loadMatches();
+
+  await checkLogin();
+
+  calculateTable();
+
+  updateStats();
+
+}
+
+
+init();
