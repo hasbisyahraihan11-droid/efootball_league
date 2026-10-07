@@ -1,358 +1,334 @@
-// ==========================================
+// ===============================
 // SUPABASE
-// ==========================================
+// ===============================
 
 const SUPABASE_URL =
   "https://jrhgxphgvahlrodjtjzs.supabase.co";
 
-const SUPABASE_ANON_KEY =
+const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_SuCUxQSZRQGr_GsS1TCy5Q_ItEUJB4d";
 
 
-const supabaseClient =
-  supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
 
 
-// ==========================================
-// LOAD MATCH
-// ==========================================
+// ===============================
+// NAVIGASI
+// ===============================
 
-async function loadMatches() {
+function showPage(pageName) {
 
-  const { data, error } =
-    await supabaseClient
-      .from("matches")
-      .select("*")
-      .order(
-        "created_at",
-        {
-          ascending: false
-        }
-      )
-      .limit(20);
+  const pages = document.querySelectorAll(".page");
 
+  pages.forEach(page => {
+    page.classList.remove("active");
+  });
 
-  if (error) {
+  const selectedPage = document.getElementById(pageName);
 
-    console.log(error);
-
-    document.getElementById(
-      "matches"
-    ).innerHTML =
-      "<div class='loading'>Gagal mengambil data.</div>";
-
-    return;
+  if (selectedPage) {
+    selectedPage.classList.add("active");
   }
 
+  if (pageName === "matches") {
+    loadMatches();
+  }
 
-  tampilkanMatch(data);
+  if (pageName === "ranking") {
+    loadRanking();
+  }
 
-  hitungRanking(data);
 }
 
 
-// ==========================================
-// TAMPILKAN MATCH
-// ==========================================
+// ===============================
+// LOAD MATCHES
+// ===============================
 
-function tampilkanMatch(data) {
+async function loadMatches() {
 
-  const box =
-    document.getElementById(
-      "matches"
-    );
+  const matchList = document.getElementById("matchList");
+
+  matchList.innerHTML = "<p>Memuat...</p>";
+
+  const { data, error } = await supabaseClient
+    .from("matches")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+
+    matchList.innerHTML =
+      "<p>Gagal mengambil data pertandingan.</p>";
+
+    console.error(error);
+
+    return;
+  }
 
 
   if (!data || data.length === 0) {
 
-    box.innerHTML =
-      "<div class='loading'>Belum ada pertandingan.</div>";
+    matchList.innerHTML =
+      "<p>Belum ada pertandingan.</p>";
 
     return;
   }
 
 
-  box.innerHTML =
-    data.map(match => `
+  matchList.innerHTML = data.map(match => `
 
-      <div class="match">
+    <div class="match">
 
-        <div class="team">
-
-          ${match.team1}
-
-          <small>
-            ${match.status}
-          </small>
-
-        </div>
-
-
-        <div class="score-result">
-
-          ${match.score1}
-          -
-          ${match.score2}
-
-        </div>
-
-
-        <div class="team">
-
-          ${match.team2}
-
-          <small>
-            eFootball
-          </small>
-
-        </div>
-
+      <div class="teams">
+        ${escapeHTML(match.team1)}
+        <br>
+        <span>vs</span>
+        <br>
+        ${escapeHTML(match.team2)}
       </div>
 
-    `).join("");
+      <div class="score">
+        ${match.score1} - ${match.score2}
+      </div>
+
+      <div class="status">
+        ${escapeHTML(match.status)}
+      </div>
+
+    </div>
+
+  `).join("");
+
 }
 
 
-// ==========================================
+// ===============================
 // TAMBAH MATCH
-// ==========================================
+// ===============================
 
 async function addMatch() {
 
   const team1 =
-    document.getElementById(
-      "team1"
-    ).value.trim();
-
-
-  const team2 =
-    document.getElementById(
-      "team2"
-    ).value.trim();
-
+    document.getElementById("team1").value.trim();
 
   const score1 =
-    Number(
-      document.getElementById(
-        "score1"
-      ).value
-    );
-
+    parseInt(document.getElementById("score1").value);
 
   const score2 =
-    Number(
-      document.getElementById(
-        "score2"
-      ).value
-    );
+    parseInt(document.getElementById("score2").value);
+
+  const team2 =
+    document.getElementById("team2").value.trim();
+
+  const message =
+    document.getElementById("message");
 
 
-  if (!team1 || !team2) {
+  if (
+    !team1 ||
+    !team2 ||
+    Number.isNaN(score1) ||
+    Number.isNaN(score2)
+  ) {
 
-    document.getElementById(
-      "message"
-    ).innerText =
-      "Nama tim wajib diisi.";
+    message.textContent =
+      "Lengkapi semua data.";
 
     return;
   }
 
 
-  const { error } =
-    await supabaseClient
-      .from("matches")
-      .insert({
+  const { error } = await supabaseClient
+    .from("matches")
+    .insert({
 
-        team1: team1,
+      team1: team1,
+      score1: score1,
+      score2: score2,
+      team2: team2,
+      status: "FT"
 
-        score1: score1,
-
-        score2: score2,
-
-        team2: team2,
-
-        status: "FT"
-
-      });
+    });
 
 
   if (error) {
 
-    console.log(error);
+    console.error(error);
 
-    document.getElementById(
-      "message"
-    ).innerText =
-      "Gagal menyimpan.";
+    message.textContent =
+      "Gagal menambahkan pertandingan.";
 
     return;
   }
 
 
-  document.getElementById(
-    "message"
-  ).innerText =
-    "✅ Hasil berhasil ditambahkan!";
+  message.textContent =
+    "✅ Pertandingan berhasil ditambahkan!";
 
 
-  document.getElementById(
-    "team1"
-  ).value = "";
-
-
-  document.getElementById(
-    "team2"
-  ).value = "";
-
-
-  document.getElementById(
-    "score1"
-  ).value = 0;
-
-
-  document.getElementById(
-    "score2"
-  ).value = 0;
+  document.getElementById("team1").value = "";
+  document.getElementById("score1").value = "";
+  document.getElementById("score2").value = "";
+  document.getElementById("team2").value = "";
 
 
   loadMatches();
+  loadRanking();
+
 }
 
 
-// ==========================================
-// RANKING OTOMATIS
-// ==========================================
+// ===============================
+// RANKING
+// ===============================
 
-function hitungRanking(matches) {
+async function loadRanking() {
 
-  const points = {};
+  const rankingList =
+    document.getElementById("rankingList");
 
-
-  matches.forEach(match => {
-
-    const team1 =
-      match.team1;
-
-    const team2 =
-      match.team2;
+  rankingList.innerHTML =
+    "<p>Memuat ranking...</p>";
 
 
-    if (!points[team1])
-      points[team1] = 0;
+  const { data, error } = await supabaseClient
+    .from("matches")
+    .select("*");
 
 
-    if (!points[team2])
-      points[team2] = 0;
+  if (error) {
+
+    rankingList.innerHTML =
+      "<p>Gagal mengambil ranking.</p>";
+
+    console.error(error);
+
+    return;
+  }
 
 
-    if (
-      Number(match.score1) >
-      Number(match.score2)
-    ) {
+  const ranking = {};
 
-      points[team1] += 3;
+
+  data.forEach(match => {
+
+    if (!ranking[match.team1]) {
+
+      ranking[match.team1] = 0;
 
     }
 
-    else if (
-      Number(match.score1) <
-      Number(match.score2)
-    ) {
+    if (!ranking[match.team2]) {
 
-      points[team2] += 3;
+      ranking[match.team2] = 0;
+
+    }
+
+
+    if (match.score1 > match.score2) {
+
+      ranking[match.team1] += 3;
+
+    }
+
+    else if (match.score2 > match.score1) {
+
+      ranking[match.team2] += 3;
 
     }
 
     else {
 
-      points[team1] += 1;
-
-      points[team2] += 1;
+      ranking[match.team1] += 1;
+      ranking[match.team2] += 1;
 
     }
 
   });
 
 
-  const ranking =
-    Object.entries(points)
-      .sort(
-        (a,b) => b[1] - a[1]
-      );
+  const sorted =
+    Object.entries(ranking)
+      .sort((a, b) => b[1] - a[1]);
 
 
-  const box =
-    document.getElementById(
-      "ranking"
-    );
+  if (sorted.length === 0) {
+
+    rankingList.innerHTML =
+      "<p>Belum ada ranking.</p>";
+
+    return;
+  }
 
 
-  box.innerHTML =
-    ranking
-      .slice(0,6)
-      .map(
-        (team,index) => `
+  rankingList.innerHTML =
+    sorted.map((team, index) => `
 
-        <div class="rank">
+      <div class="rank">
 
-          <small>
-            #${index + 1}
-          </small>
-
-          <b>
-            ${team[0]}
-          </b>
-
-          <strong>
-            ${team[1]} PTS
-          </strong>
-
+        <div class="rank-name">
+          #${index + 1}
+          &nbsp;
+          ${escapeHTML(team[0])}
         </div>
 
-        `
-      )
-      .join("");
+        <div class="rank-points">
+          ${team[1]} PTS
+        </div>
+
+      </div>
+
+    `).join("");
+
 }
 
 
-// ==========================================
+// ===============================
+// KEAMANAN TEKS
+// ===============================
+
+function escapeHTML(text) {
+
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+// ===============================
 // REALTIME
-// ==========================================
+// ===============================
 
 supabaseClient
-  .channel("live-matches")
-
+  .channel("matches-realtime")
   .on(
     "postgres_changes",
-
     {
       event: "*",
-
       schema: "public",
-
       table: "matches"
     },
-
-    function() {
-
-      console.log(
-        "MATCH UPDATE!"
-      );
+    () => {
 
       loadMatches();
+      loadRanking();
 
     }
-
   )
-
   .subscribe();
 
 
-// ==========================================
-// START
-// ==========================================
+// ===============================
+// AWAL
+// ===============================
 
 loadMatches();
+loadRanking();
