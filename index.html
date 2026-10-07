@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Komunitas eFootball ID</title>
+  <title>eFootball League ID</title>
 
   <link rel="stylesheet" href="style.css">
 
@@ -15,107 +15,313 @@
 
   <aside class="sidebar">
 
-    <h2>⚽ eFootball ID</h2>
+    <div class="logo">
+      <div class="logo-ball">⚽</div>
+      <div>
+        <b>eFOOTBALL</b>
+        <small>LEAGUE ID</small>
+      </div>
+    </div>
 
-    <button onclick="showPage('home')">
-      🏠 HOME
+    <button class="menu active" onclick="showPage('home', this)">
+      🏠 Home
     </button>
 
-    <button onclick="showPage('ranking')">
-      🏆 RANKING
+    <button class="menu" onclick="showPage('table', this)">
+      🏆 Klasemen
     </button>
 
-    <button onclick="showPage('matches')">
-      ⚽ MATCHES
+    <button class="menu" onclick="showPage('matches', this)">
+      ⚽ Pertandingan
     </button>
 
-    <button onclick="showPage('admin')">
-      ⚙️ ADMIN
+    <button class="menu" onclick="showPage('admin', this)">
+      ⚙️ Admin
     </button>
+
+    <div class="online">
+      <span></span> SERVER ONLINE
+    </div>
 
   </aside>
 
 
-  <main class="main">
+  <main class="content">
+
+    <header>
+      <div>
+        <small>eFOOTBALL COMMUNITY</small>
+        <h1 id="pageTitle">Dashboard</h1>
+      </div>
+
+      <div class="live">
+        <span></span> LIVE
+      </div>
+    </header>
+
 
     <!-- HOME -->
+
     <section id="home" class="page active">
 
       <div class="hero">
 
-        <p>WELCOME TO</p>
+        <div>
+          <p>WELCOME TO</p>
 
-        <h1>KOMUNITAS<br>eFOOTBALL ID</h1>
+          <h2>
+            eFOOTBALL<br>
+            <span>LEAGUE ID</span>
+          </h2>
 
-        <p>
-          Tempat bermain, bertanding dan bersaing
-          bersama komunitas eFootball.
-        </p>
+          <p class="desc">
+            Kompetisi eFootball dengan klasemen,
+            statistik pertandingan dan ranking secara realtime.
+          </p>
+
+          <button
+            class="main-btn"
+            onclick="showPage('table')"
+          >
+            🏆 LIHAT KLASEMEN
+          </button>
+        </div>
+
+        <div class="big-ball">⚽</div>
+
+      </div>
+
+
+      <div class="stats">
+
+        <div class="stat">
+          <span>⚽</span>
+          <div>
+            <small>PERTANDINGAN</small>
+            <b id="totalMatches">0</b>
+          </div>
+        </div>
+
+        <div class="stat">
+          <span>👥</span>
+          <div>
+            <small>TEAM</small>
+            <b id="totalTeams">0</b>
+          </div>
+        </div>
+
+        <div class="stat">
+          <span>🟢</span>
+          <div>
+            <small>STATUS</small>
+            <b>LIVE</b>
+          </div>
+        </div>
 
       </div>
 
     </section>
 
 
-    <!-- RANKING -->
-    <section id="ranking" class="page">
+    <!-- TABLE -->
 
-      <h1>🏆 Ranking</h1>
+    <section id="table" class="page">
 
-      <div id="rankingList">
-        <p>Memuat ranking...</p>
+      <div class="title">
+        <small>LEAGUE TABLE</small>
+        <h2>🏆 Klasemen Liga</h2>
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>POS</th>
+              <th>TEAM</th>
+              <th>MP</th>
+              <th>W</th>
+              <th>D</th>
+              <th>L</th>
+              <th>GF</th>
+              <th>GA</th>
+              <th>GD</th>
+              <th>PTS</th>
+            </tr>
+          </thead>
+
+          <tbody id="leagueTable">
+
+            <tr>
+              <td colspan="10">
+                Memuat klasemen...
+              </td>
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+      <div class="legend">
+
+        <b>MP</b> Main &nbsp;
+        <b>W</b> Menang &nbsp;
+        <b>D</b> Seri &nbsp;
+        <b>L</b> Kalah &nbsp;
+        <b>GF</b> Gol &nbsp;
+        <b>GA</b> Kemasukan &nbsp;
+        <b>GD</b> Selisih Gol &nbsp;
+        <b>PTS</b> Poin
+
       </div>
 
     </section>
 
 
     <!-- MATCHES -->
+
     <section id="matches" class="page">
 
-      <h1>⚽ Recent Matches</h1>
+      <div class="title">
+        <small>MATCH CENTER</small>
+        <h2>⚽ Pertandingan Terbaru</h2>
+      </div>
 
       <div id="matchList">
-        <p>Memuat pertandingan...</p>
+
+        <div class="loading">
+          Memuat pertandingan...
+        </div>
+
       </div>
 
     </section>
 
 
     <!-- ADMIN -->
+
     <section id="admin" class="page">
 
-      <h1>⚙️ Tambah Pertandingan</h1>
+      <div class="title">
+        <small>PRIVATE AREA</small>
+        <h2>⚙️ Admin</h2>
+      </div>
 
-      <div class="form">
+
+      <!-- LOGIN -->
+
+      <div id="loginBox" class="admin-box">
+
+        <div class="lock">🔐</div>
+
+        <h2>Admin Login</h2>
+
+        <p>Login untuk menambahkan pertandingan.</p>
+
+        <input
+          type="email"
+          id="loginEmail"
+          placeholder="Email admin"
+        >
+
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="Password"
+        >
+
+        <button
+          class="main-btn full"
+          onclick="loginAdmin()"
+        >
+          LOGIN
+        </button>
+
+        <p id="loginMessage"></p>
+
+      </div>
+
+
+      <!-- ADMIN PANEL -->
+
+      <div
+        id="adminPanel"
+        class="admin-box"
+        style="display:none;"
+      >
+
+        <div class="admin-head">
+          <div>
+            <small>ADMIN PANEL</small>
+            <h2>Tambah Pertandingan</h2>
+          </div>
+
+          <span class="logged">● ONLINE</span>
+        </div>
+
+
+        <label>TEAM 1</label>
 
         <input
           type="text"
           id="team1"
-          placeholder="Nama Team 1"
+          placeholder="Contoh: Barcelona"
         >
 
-        <input
-          type="number"
-          id="score1"
-          placeholder="Score Team 1"
-          min="0"
-        >
 
-        <input
-          type="number"
-          id="score2"
-          placeholder="Score Team 2"
-          min="0"
-        >
+        <div class="score-row">
+
+          <div>
+            <label>SKOR</label>
+
+            <input
+              type="number"
+              id="score1"
+              min="0"
+              value="0"
+            >
+          </div>
+
+          <strong>VS</strong>
+
+          <div>
+            <label>SKOR</label>
+
+            <input
+              type="number"
+              id="score2"
+              min="0"
+              value="0"
+            >
+          </div>
+
+        </div>
+
+
+        <label>TEAM 2</label>
 
         <input
           type="text"
           id="team2"
-          placeholder="Nama Team 2"
+          placeholder="Contoh: Real Madrid"
         >
 
-        <button onclick="addMatch()">
-          ➕ TAMBAH MATCH
+
+        <button
+          class="main-btn full"
+          onclick="addMatch()"
+        >
+          ⚽ SIMPAN HASIL
+        </button>
+
+        <button
+          class="logout"
+          onclick="logoutAdmin()"
+        >
+          LOGOUT
         </button>
 
         <p id="message"></p>
