@@ -8,7 +8,7 @@ const SUPABASE_PUBLISHABLE_KEY =
 /*
   GANTI INI DENGAN UUID ADMIN SUPABASE KAMU
 */
-const ADMIN_UUID = "ADMIN-UUID-DI-SINI";
+const ADMIN_UUID = "16544963-125c-4369-a8f3-2d8c9091679f";
 
 
 const supabaseClient =
@@ -1463,7 +1463,7 @@ async function login() {
 
 
   if (
-    ADMIN_UUID !== "ADMIN-UUID-DI-SINI" &&
+    ADMIN_UUID !== "16544963-125c-4369-a8f3-2d8c9091679f" &&
     data.user.id !== ADMIN_UUID
   ) {
 
