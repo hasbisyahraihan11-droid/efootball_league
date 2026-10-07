@@ -3,753 +3,219 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>eFootball League</title>
+  <title>Football League</title>
   <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
-
-    <div class="logo">
-      <div class="logo-ball">⚽</div>
-      <div>
-        <strong>eFOOTBALL</strong>
-        <span>LEAGUE</span>
-      </div>
-    </div>
+    <div class="logo">⚽ LEAGUE</div>
 
     <nav>
-      <button class="nav-btn active" onclick="showPage('home', this)">
-        🏠 Home
-      </button>
-
-      <button class="nav-btn" onclick="showPage('table', this)">
-        🏆 Klasemen
-      </button>
-
-      <button class="nav-btn" onclick="showPage('matches', this)">
-        ⚽ Pertandingan
-      </button>
-
-      <button class="nav-btn" onclick="showPage('admin', this)">
-        🔐 Admin
-      </button>
+      <button class="nav-btn active" data-page="home">HOME</button>
+      <button class="nav-btn" data-page="table">KLASEMEN</button>
+      <button class="nav-btn" data-page="matches">PERTANDINGAN</button>
+      <button class="nav-btn" data-page="admin">ADMIN</button>
     </nav>
-
-    <div class="sidebar-bottom">
-      <span>● LIVE LEAGUE</span>
-      <small>Powered by Supabase</small>
-    </div>
-
   </aside>
 
+  <main>
 
-  <!-- MAIN -->
-  <main class="main">
-
-
-    <!-- ================= HOME ================= -->
-
+    <!-- HOME -->
     <section id="home" class="page active">
-
       <div class="hero">
-
-        <div class="hero-content">
-
-          <span class="hero-tag">
-            ⚡ eFOOTBALL COMPETITION
-          </span>
-
-          <h1>
-            THE NEXT<br>
-            <span>CHAMPION</span>
-          </h1>
-
-          <p>
-            Ikuti perjalanan setiap tim menuju puncak klasemen.
-            Semua hasil pertandingan diperbarui secara realtime.
-          </p>
-
-          <button
-            class="primary-btn"
-            onclick="showPage('table')">
-            🏆 LIHAT KLASEMEN
-          </button>
-
-        </div>
-
-        <div class="hero-decoration">
-          <div class="orbit"></div>
-          <div class="orbit orbit-2"></div>
-          <div class="hero-ball">⚽</div>
-        </div>
-
+        <p class="eyebrow">WELCOME TO</p>
+        <h1>FOOTBALL<br><span>LEAGUE</span></h1>
+        <p class="hero-text">
+          Kompetisi sepak bola dengan sistem klasemen dan pertandingan realtime.
+        </p>
       </div>
 
+      <div class="fixture-card">
+        <div class="fixture-label">PERTANDINGAN SELANJUTNYA</div>
 
-      <!-- ROLLING FIXTURE -->
-
-      <div class="section-heading">
-        <div>
-          <span class="section-kicker">NEXT MATCH</span>
-          <h2>UPCOMING FIXTURE</h2>
+        <div class="fixture-match">
+          <div id="fixtureTeam1">-</div>
+          <strong>VS</strong>
+          <div id="fixtureTeam2">-</div>
         </div>
+
+        <div id="fixtureMatchday">Matchday -</div>
+        <div id="fixtureDate">-</div>
 
         <div class="fixture-controls">
-          <button onclick="previousFixture()">‹</button>
-          <button onclick="nextFixture()">›</button>
+          <button id="prevFixture">‹</button>
+          <div id="fixtureDots"></div>
+          <button id="nextFixture">›</button>
         </div>
       </div>
-
-
-      <div class="fixture-slider">
-
-        <div id="fixtureCard" class="fixture-card">
-
-          <div class="fixture-top">
-            <span class="live-badge">
-              NEXT MATCH
-            </span>
-
-            <span id="fixtureMatchday">
-              MATCHDAY
-            </span>
-          </div>
-
-
-          <div class="fixture-teams">
-
-            <div class="fixture-team">
-              <div class="team-logo-placeholder">
-                ⚽
-              </div>
-
-              <strong id="fixtureTeam1">
-                TEAM A
-              </strong>
-            </div>
-
-
-            <div class="fixture-vs">
-
-              <span>VS</span>
-
-              <small id="fixtureDate">
-                MENUNGGU JADWAL
-              </small>
-
-            </div>
-
-
-            <div class="fixture-team">
-
-              <div class="team-logo-placeholder">
-                ⚽
-              </div>
-
-              <strong id="fixtureTeam2">
-                TEAM B
-              </strong>
-
-            </div>
-
-          </div>
-
-
-          <div class="fixture-bottom">
-
-            <span>
-              ⚡ UPCOMING MATCH
-            </span>
-
-            <div id="fixtureDots" class="fixture-dots">
-              <span class="active"></span>
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- STATS -->
 
       <div class="stats">
-
-        <div class="stat-card">
-          <span>⚽</span>
-
-          <div>
-            <small>TOTAL MATCHES</small>
-            <strong id="totalMatches">0</strong>
-          </div>
+        <div class="stat-box">
+          <span id="totalTeams">0</span>
+          <small>TIM</small>
         </div>
 
-
-        <div class="stat-card">
-          <span>👥</span>
-
-          <div>
-            <small>TOTAL TEAMS</small>
-            <strong id="totalTeams">0</strong>
-          </div>
+        <div class="stat-box">
+          <span id="totalMatches">0</span>
+          <small>PERTANDINGAN</small>
         </div>
 
-
-        <div class="stat-card">
-          <span>⚡</span>
-
-          <div>
-            <small>STATUS</small>
-            <strong>LIVE</strong>
-          </div>
+        <div class="stat-box">
+          <span id="playedMatches">0</span>
+          <small>SELESAI</small>
         </div>
-
       </div>
-
     </section>
 
 
-
-    <!-- ================= KLASEMEN ================= -->
-
+    <!-- KLASEMEN -->
     <section id="table" class="page">
-
-      <div class="page-header">
-
-        <div>
-          <span class="section-kicker">
-            LEAGUE
-          </span>
-
-          <h1>
-            Klasemen
-          </h1>
-        </div>
-
-        <span class="live-badge">
-          ● LIVE
-        </span>
-
+      <div class="section-title">
+        <p>LEAGUE</p>
+        <h2>KLASEMEN</h2>
       </div>
 
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>TIM</th>
+              <th>MP</th>
+              <th>W</th>
+              <th>D</th>
+              <th>L</th>
+              <th>GD</th>
+              <th>PTS</th>
+            </tr>
+          </thead>
 
-      <div class="table-card">
-
-        <div class="table-title">
-
-          <div>
-            <span>🏆</span>
-
-            <div>
-              <strong>
-                LEAGUE TABLE
-              </strong>
-
-              <small>
-                KLASMEN TERKINI
-              </small>
-            </div>
-
-          </div>
-
-          <small>
-            FORM = 5 MATCH TERAKHIR
-          </small>
-
-        </div>
-
-
-        <div class="table-scroll">
-
-          <table>
-
-            <thead>
-
-              <tr>
-                <th>POS</th>
-                <th>TEAM</th>
-                <th>FORM</th>
-                <th>MP</th>
-                <th>W</th>
-                <th>D</th>
-                <th>L</th>
-                <th>GF</th>
-                <th>GA</th>
-                <th>GD</th>
-                <th>PTS</th>
-              </tr>
-
-            </thead>
-
-
-            <tbody id="leagueTable">
-
-              <tr>
-                <td colspan="11">
-                  Memuat klasemen...
-                </td>
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
+          <tbody id="leagueTable"></tbody>
+        </table>
       </div>
-
     </section>
 
 
-
-    <!-- ================= PERTANDINGAN ================= -->
-
+    <!-- PERTANDINGAN -->
     <section id="matches" class="page">
-
-      <div class="page-header">
-
-        <div>
-
-          <span class="section-kicker">
-            MATCH CENTER
-          </span>
-
-          <h1>
-            Pertandingan
-          </h1>
-
-        </div>
-
-        <span class="live-badge">
-          ● REALTIME
-        </span>
-
+      <div class="section-title">
+        <p>FIXTURES & RESULTS</p>
+        <h2>PERTANDINGAN</h2>
       </div>
 
+      <h3>PERTANDINGAN MENDATANG</h3>
+      <div id="upcomingList"></div>
 
-      <!-- UPCOMING -->
-
-      <div class="matches-section">
-
-        <div class="section-heading">
-
-          <div>
-            <span class="section-kicker">
-              SCHEDULE
-            </span>
-
-            <h2>
-              Upcoming
-            </h2>
-          </div>
-
-        </div>
-
-        <div id="upcomingList" class="match-list">
-
-          <div class="empty-card">
-            Belum ada jadwal pertandingan.
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- FINISHED -->
-
-      <div class="matches-section">
-
-        <div class="section-heading">
-
-          <div>
-            <span class="section-kicker">
-              RESULTS
-            </span>
-
-            <h2>
-              Hasil Pertandingan
-            </h2>
-          </div>
-
-        </div>
-
-        <div id="matchList" class="match-list">
-
-          <div class="empty-card">
-            Memuat pertandingan...
-          </div>
-
-        </div>
-
-      </div>
-
+      <h3>HASIL PERTANDINGAN</h3>
+      <div id="matchList"></div>
     </section>
 
 
-
-    <!-- ================= ADMIN ================= -->
-
+    <!-- ADMIN -->
     <section id="admin" class="page">
 
-      <div class="page-header">
-
-        <div>
-
-          <span class="section-kicker">
-            CONTROL CENTER
-          </span>
-
-          <h1>
-            Admin
-          </h1>
-
-        </div>
-
+      <div class="section-title">
+        <p>CONTROL PANEL</p>
+        <h2>ADMIN</h2>
       </div>
-
-
 
       <!-- LOGIN -->
-
       <div id="loginBox" class="admin-card">
+        <h3>LOGIN ADMIN</h3>
 
-        <div class="admin-icon">
-          🔐
-        </div>
+        <input
+          type="email"
+          id="loginEmail"
+          placeholder="Email admin"
+        >
 
-        <h2>
-          ADMIN LOGIN
-        </h2>
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="Password"
+        >
 
-        <p>
-          Login untuk mengelola jadwal dan hasil pertandingan.
-        </p>
+        <button id="loginBtn">LOGIN</button>
 
-
-        <div class="form-group">
-
-          <label>
-            EMAIL
-          </label>
-
-          <input
-            id="loginEmail"
-            type="email"
-            placeholder="admin@email.com"
-          >
-
-        </div>
-
-
-        <div class="form-group">
-
-          <label>
-            PASSWORD
-          </label>
-
-          <input
-            id="loginPassword"
-            type="password"
-            placeholder="••••••••"
-          >
-
-        </div>
-
-
-        <button
-          onclick="loginAdmin()"
-          class="primary-btn full">
-          LOGIN ADMIN
-        </button>
-
-
-        <p
-          id="loginMessage"
-          class="message">
-        </p>
-
+        <p id="loginMessage"></p>
       </div>
 
 
+      <!-- PANEL -->
+      <div id="adminPanel" style="display:none;">
 
-      <!-- ADMIN PANEL -->
+        <!-- TIM -->
+        <div class="admin-card">
+          <h3>⚽ TAMBAH TIM</h3>
 
-      <div id="adminPanel" class="hidden">
+          <input
+            type="text"
+            id="teamNameInput"
+            placeholder="Nama tim"
+          >
 
+          <button id="addTeamBtn">+ TAMBAH TIM</button>
 
-        <!-- ADMIN HEADER -->
+          <p id="teamMessage"></p>
 
-        <div class="admin-card admin-top">
-
-          <div>
-
-            <span class="section-kicker">
-              ADMIN MODE
-            </span>
-
-            <h2>
-              CONTROL CENTER
-            </h2>
-
-            <p>
-              Kelola jadwal dan hasil pertandingan.
-            </p>
-
-          </div>
-
-
-          <button
-            onclick="logoutAdmin()"
-            class="logout-btn">
-            LOGOUT
-          </button>
-
+          <div id="teamAdminList"></div>
         </div>
 
 
-
-        <!-- BUAT JADWAL -->
-
+        <!-- GENERATE JADWAL -->
         <div class="admin-card">
+          <h3>🗓️ GENERATE JADWAL</h3>
 
-          <div class="admin-title">
-
-            <div>
-              <span>📅</span>
-
-              <div>
-                <strong>
-                  BUAT JADWAL
-                </strong>
-
-                <small>
-                  UPCOMING FIXTURE
-                </small>
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div class="score-form">
-
-            <div class="team-input">
-
-              <label>
-                HOME TEAM
-              </label>
-
-              <input
-                id="fixtureTeam1Input"
-                type="text"
-                placeholder="Contoh: Real Madrid"
-              >
-
-            </div>
-
-
-            <div class="score-input fixture-vs-admin">
-
-              <span>
-                VS
-              </span>
-
-            </div>
-
-
-            <div class="team-input">
-
-              <label>
-                AWAY TEAM
-              </label>
-
-              <input
-                id="fixtureTeam2Input"
-                type="text"
-                placeholder="Contoh: Barcelona"
-              >
-
-            </div>
-
-          </div>
-
-
-          <div class="admin-grid">
-
-            <div class="form-group">
-
-              <label>
-                MATCHDAY
-              </label>
-
-              <input
-                id="fixtureMatchdayInput"
-                type="number"
-                min="1"
-                value="1"
-              >
-
-            </div>
-
-
-            <div class="form-group">
-
-              <label>
-                WAKTU
-              </label>
-
-              <input
-                id="fixtureDateInput"
-                type="datetime-local"
-              >
-
-            </div>
-
-          </div>
-
-
-          <button
-            onclick="addFixture()"
-            class="primary-btn">
-            + BUAT JADWAL
-          </button>
-
-
-          <p
-            id="fixtureMessage"
-            class="message">
+          <p>
+            Setelah semua tim ditambahkan, tekan tombol di bawah.
+            Sistem akan otomatis membuat jadwal liga.
           </p>
 
-        </div>
+          <button id="generateFixturesBtn">
+            GENERATE JADWAL OTOMATIS
+          </button>
 
+          <p id="fixtureMessage"></p>
+        </div>
 
 
         <!-- INPUT HASIL -->
-
         <div class="admin-card">
+          <h3>🏆 INPUT HASIL</h3>
 
-          <div class="admin-title">
+          <select id="matchTeam1Select">
+            <option value="">Pilih tim 1</option>
+          </select>
 
-            <div>
-              <span>⚽</span>
+          <input
+            type="number"
+            id="matchScore1"
+            min="0"
+            placeholder="Skor"
+          >
 
-              <div>
-                <strong>
-                  INPUT HASIL
-                </strong>
+          <input
+            type="number"
+            id="matchScore2"
+            min="0"
+            placeholder="Skor"
+          >
 
-                <small>
-                  FINISHED MATCH
-                </small>
-              </div>
+          <select id="matchTeam2Select">
+            <option value="">Pilih tim 2</option>
+          </select>
 
-            </div>
+          <button id="addMatchBtn">SIMPAN HASIL</button>
 
-          </div>
-
-
-          <div class="score-form">
-
-            <div class="team-input">
-
-              <label>
-                HOME TEAM
-              </label>
-
-              <input
-                id="team1"
-                type="text"
-                placeholder="Nama tim"
-              >
-
-            </div>
-
-
-            <div class="score-input">
-
-              <input
-                id="score1"
-                type="number"
-                min="0"
-                value="0"
-              >
-
-              <span>
-                VS
-              </span>
-
-              <input
-                id="score2"
-                type="number"
-                min="0"
-                value="0"
-              >
-
-            </div>
-
-
-            <div class="team-input">
-
-              <label>
-                AWAY TEAM
-              </label>
-
-              <input
-                id="team2"
-                type="text"
-                placeholder="Nama tim"
-              >
-
-            </div>
-
-          </div>
-
-
-          <button
-            onclick="addMatch()"
-            class="primary-btn">
-            + TAMBAH HASIL
-          </button>
-
-
-          <p
-            id="adminMessage"
-            class="message">
-          </p>
-
+          <p id="matchMessage"></p>
         </div>
 
 
-        <!-- ADMIN INFO -->
-
-        <div class="admin-info">
-
-          <div>
-            <span>🔒</span>
-
-            <div>
-              <strong>
-                ADMIN ONLY
-              </strong>
-
-              <small>
-                Data pertandingan dilindungi oleh Supabase RLS.
-              </small>
-            </div>
-
-          </div>
-
-          <span class="secure-status">
-            SECURE
-          </span>
-
-        </div>
+        <button id="logoutBtn">LOGOUT</button>
 
       </div>
 
@@ -758,50 +224,15 @@
   </main>
 
 
-
-  <!-- MOBILE NAV -->
-
   <div class="mobile-nav">
-
-    <button
-      class="nav-btn active"
-      onclick="showPage('home', this)">
-      🏠
-      <span>Home</span>
-    </button>
-
-    <button
-      class="nav-btn"
-      onclick="showPage('table', this)">
-      🏆
-      <span>Table</span>
-    </button>
-
-    <button
-      class="nav-btn"
-      onclick="showPage('matches', this)">
-      ⚽
-      <span>Match</span>
-    </button>
-
-    <button
-      class="nav-btn"
-      onclick="showPage('admin', this)">
-      🔐
-      <span>Admin</span>
-    </button>
-
+    <button data-page="home">⌂</button>
+    <button data-page="table">☷</button>
+    <button data-page="matches">⚽</button>
+    <button data-page="admin">⚙</button>
   </div>
 
-
-
-  <!-- SUPABASE -->
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- APP -->
 
   <script src="app.js"></script>
 
 </body>
-</html>
+                                                 </html>
