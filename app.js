@@ -9,12 +9,12 @@ try {
     SUPABASE_PUBLISHABLE_KEY
   );
 } catch (error) {
-  console.error("Supabase gagal:", error);
+  console.error("Supabase gagal dibuat:", error);
 }
 
 
 /* =========================
-   GLOBAL DATA
+   DATA
 ========================= */
 
 let teams = [];
@@ -22,7 +22,6 @@ let fixtures = [];
 let matches = [];
 
 let currentFixture = 0;
-let fixtureTimer = null;
 
 
 /* =========================
@@ -40,10 +39,10 @@ function showPage(page) {
     target.classList.add("active");
   }
 
-  document.querySelectorAll(".nav-btn").forEach(btn => {
-    btn.classList.toggle(
+  document.querySelectorAll(".nav-btn").forEach(button => {
+    button.classList.toggle(
       "active",
-      btn.dataset.page === page
+      button.dataset.page === page
     );
   });
 }
@@ -58,7 +57,7 @@ window.showPage = showPage;
 
 
 /* =========================
-   LOAD TEAMS
+   TEAMS
 ========================= */
 
 async function loadTeams() {
@@ -82,12 +81,9 @@ async function loadTeams() {
 }
 
 
-/* =========================
-   TEAM LIST ADMIN
-========================= */
-
 function renderTeamList() {
-  const container = document.getElementById("teamAdminList");
+  const container =
+    document.getElementById("teamAdminList");
 
   if (!container) return;
 
@@ -106,14 +102,12 @@ function renderTeamList() {
 }
 
 
-/* =========================
-   TEAM SELECT
-========================= */
-
 function populateTeamSelects() {
+  const select1 =
+    document.getElementById("matchTeam1Select");
 
-  const select1 = document.getElementById("matchTeam1Select");
-  const select2 = document.getElementById("matchTeam2Select");
+  const select2 =
+    document.getElementById("matchTeam2Select");
 
   if (!select1 || !select2) return;
 
@@ -125,28 +119,27 @@ function populateTeamSelects() {
 
   teams.forEach(team => {
 
-    const option1 = document.createElement("option");
-    option1.value = team.name;
-    option1.textContent = team.name;
+    select1.innerHTML += `
+      <option value="${escapeAttribute(team.name)}">
+        ${escapeHTML(team.name)}
+      </option>
+    `;
 
-    const option2 = document.createElement("option");
-    option2.value = team.name;
-    option2.textContent = team.name;
-
-    select1.appendChild(option1);
-    select2.appendChild(option2);
+    select2.innerHTML += `
+      <option value="${escapeAttribute(team.name)}">
+        ${escapeHTML(team.name)}
+      </option>
+    `;
   });
 }
 
 
-/* =========================
-   ADD TEAM
-========================= */
-
 async function addTeam() {
+  const input =
+    document.getElementById("teamNameInput");
 
-  const input = document.getElementById("teamNameInput");
-  const message = document.getElementById("teamMessage");
+  const message =
+    document.getElementById("teamMessage");
 
   const name = input.value.trim();
 
@@ -155,29 +148,34 @@ async function addTeam() {
     return;
   }
 
-  const exists = teams.some(
-    team => team.name.toLowerCase() === name.toLowerCase()
+  const alreadyExists = teams.some(
+    team =>
+      team.name.toLowerCase() === name.toLowerCase()
   );
 
-  if (exists) {
+  if (alreadyExists) {
     message.textContent = "Tim tersebut sudah ada.";
     return;
   }
 
-  const { error } = await supabaseClient
-    .from("teams")
-    .insert({
-      name: name
-    });
+  const { error } =
+    await supabaseClient
+      .from("teams")
+      .insert({
+        name: name
+      });
 
   if (error) {
     console.error(error);
-    message.textContent = "Gagal menambahkan tim.";
+    message.textContent =
+      "Gagal menambahkan tim.";
     return;
   }
 
   input.value = "";
-  message.textContent = "Tim berhasil ditambahkan.";
+
+  message.textContent =
+    "Tim berhasil ditambahkan.";
 
   await loadTeams();
 }
@@ -189,20 +187,24 @@ async function addTeam() {
 
 async function generateFixtures() {
 
-  const message = document.getElementById("fixtureMessage");
+  const message =
+    document.getElementById("fixtureMessage");
 
   if (teams.length < 2) {
     message.textContent =
-      "Minimal harus ada 2 tim.";
+      "Minimal 2 tim.";
     return;
   }
 
+
+  // Cek apakah sudah ada jadwal
   if (fixtures.length > 0) {
-    const confirmGenerate = confirm(
-      "Jadwal sudah ada. Generate ulang akan membuat jadwal baru. Lanjut?"
+
+    const yakin = confirm(
+      "Jadwal sudah ada. Generate ulang?"
     );
 
-    if (!confirmGenerate) return;
+    if (!yakin) return;
 
     const { error: deleteError } =
       await supabaseClient
@@ -212,96 +214,153 @@ async function generateFixtures() {
 
     if (deleteError) {
       console.error(deleteError);
+
       message.textContent =
         "Gagal menghapus jadwal lama.";
+
       return;
     }
   }
 
+
   /*
-    Round robin / sistem liga.
-    Setiap tim bertemu satu kali.
+    ROUND ROBIN
+
+    Contoh 4 tim:
+
+    MD 1
+    A vs B
+    C vs D
+
+    MD 2
+    A vs C
+    D vs B
+
+    MD 3
+    A vs D
+    B vs C
   */
 
-  let teamNames = teams.map(team => team.name);
 
-  // Jika jumlah tim ganjil, tambahkan BYE
-  if (teamNames.length % 2 !== 0) {
-    teamNames.push("BYE");
+  let list =
+    teams.map(team => team.name);
+
+  // Kalau jumlah ganjil,
+  // tambahkan BYE
+  if (list.length % 2 !== 0) {
+    list.push("BYE");
   }
 
-  const totalTeams = teamNames.length;
-  const totalRounds = totalTeams - 1;
-  const matchesPerRound = totalTeams / 2;
 
-  const generatedFixtures = [];
+  const jumlahTim = list.length;
+  const jumlahMatchday = jumlahTim - 1;
+  const jumlahPertandingan =
+    jumlahTim / 2;
 
-  for (let round = 0; round < totalRounds; round++) {
+  const generated = [];
 
-    for (let i = 0; i < matchesPerRound; i++) {
 
-      const home = teamNames[i];
-      const away =
-        teamNames[totalTeams - 1 - i];
+  for (
+    let round = 0;
+    round < jumlahMatchday;
+    round++
+  ) {
 
-      if (home !== "BYE" && away !== "BYE") {
+    for (
+      let i = 0;
+      i < jumlahPertandingan;
+      i++
+    ) {
 
-        generatedFixtures.push({
-          team1: home,
-          team2: away,
-          matchday: round + 1,
-          status: "UPCOMING"
-        });
+      const team1 = list[i];
 
+      const team2 =
+        list[jumlahTim - 1 - i];
+
+
+      // Lewati BYE
+      if (
+        team1 === "BYE" ||
+        team2 === "BYE"
+      ) {
+        continue;
       }
+
+
+      generated.push({
+        team1: team1,
+        team2: team2,
+        matchday: round + 1,
+        status: "UPCOMING"
+      });
     }
 
-    // Rotasi sistem round robin
-    const fixed = teamNames[0];
 
-    const rotating = teamNames.slice(1);
+    // Rotasi tim untuk round berikutnya
+    const first = list[0];
 
-    rotating.unshift(
-      rotating.pop()
-    );
+    const rest = list.slice(1);
 
-    teamNames = [fixed, ...rotating];
+    const last = rest.pop();
+
+    rest.unshift(last);
+
+    list = [
+      first,
+      ...rest
+    ];
   }
 
 
-  const { error } = await supabaseClient
-    .from("fixtures")
-    .insert(generatedFixtures);
-
-  if (error) {
-    console.error(error);
+  if (generated.length === 0) {
     message.textContent =
       "Gagal membuat jadwal.";
+
     return;
   }
 
+
+  const { error } =
+    await supabaseClient
+      .from("fixtures")
+      .insert(generated);
+
+
+  if (error) {
+    console.error(error);
+
+    message.textContent =
+      "Gagal menyimpan jadwal.";
+
+    return;
+  }
+
+
   message.textContent =
-    `${generatedFixtures.length} pertandingan berhasil dibuat.`;
+    `${generated.length} pertandingan berhasil dibuat.`;
+
+  currentFixture = 0;
 
   await loadFixtures();
 }
 
 
 /* =========================
-   LOAD FIXTURES
+   FIXTURES
 ========================= */
 
 async function loadFixtures() {
 
-  const { data, error } = await supabaseClient
-    .from("fixtures")
-    .select("*")
-    .order("matchday", {
-      ascending: true
-    })
-    .order("id", {
-      ascending: true
-    });
+  const { data, error } =
+    await supabaseClient
+      .from("fixtures")
+      .select("*")
+      .order("matchday", {
+        ascending: true
+      })
+      .order("id", {
+        ascending: true
+      });
 
   if (error) {
     console.error(error);
@@ -316,9 +375,19 @@ async function loadFixtures() {
 }
 
 
-/* =========================
-   UPCOMING
-========================= */
+/*
+  HANYA fixture UPCOMING
+  yang ditampilkan sebagai
+  jadwal mendatang.
+*/
+
+function getUpcomingFixtures() {
+  return fixtures.filter(
+    fixture =>
+      fixture.status === "UPCOMING"
+  );
+}
+
 
 function renderUpcoming() {
 
@@ -327,99 +396,153 @@ function renderUpcoming() {
 
   if (!container) return;
 
-  const upcoming = fixtures.filter(
-    fixture => fixture.status === "UPCOMING"
-  );
+  const upcoming =
+    getUpcomingFixtures();
+
 
   if (upcoming.length === 0) {
-    container.innerHTML =
-      `<p>Belum ada pertandingan mendatang.</p>`;
+
+    container.innerHTML = `
+      <p>Tidak ada pertandingan mendatang.</p>
+    `;
+
     return;
   }
 
-  container.innerHTML = upcoming.map(fixture => `
-    <div class="match-card">
-      <small>MATCHDAY ${fixture.matchday}</small>
 
-      <div class="match-teams">
-        <span>${escapeHTML(fixture.team1)}</span>
-        <strong>VS</strong>
-        <span>${escapeHTML(fixture.team2)}</span>
+  container.innerHTML =
+    upcoming.map(fixture => `
+      <div class="match-card">
+
+        <small>
+          MATCHDAY ${fixture.matchday}
+        </small>
+
+        <div class="match-teams">
+
+          <span>
+            ${escapeHTML(fixture.team1)}
+          </span>
+
+          <strong>VS</strong>
+
+          <span>
+            ${escapeHTML(fixture.team2)}
+          </span>
+
+        </div>
+
       </div>
-    </div>
-  `).join("");
+    `).join("");
 }
 
 
 /* =========================
-   HOME FIXTURE SLIDER
+   HOME FIXTURE
 ========================= */
 
 function renderHomeFixture() {
 
-  const upcoming = fixtures.filter(
-    fixture => fixture.status === "UPCOMING"
-  );
+  const upcoming =
+    getUpcomingFixtures();
 
-  if (upcoming.length === 0) {
 
-    document.getElementById("fixtureTeam1").textContent = "-";
-    document.getElementById("fixtureTeam2").textContent = "-";
-    document.getElementById("fixtureMatchday").textContent =
-      "Belum ada jadwal";
+  const team1 =
+    document.getElementById("fixtureTeam1");
 
-    document.getElementById("fixtureDate").textContent = "";
+  const team2 =
+    document.getElementById("fixtureTeam2");
 
-    return;
-  }
+  const matchday =
+    document.getElementById("fixtureMatchday");
 
-  if (currentFixture >= upcoming.length) {
-    currentFixture = 0;
-  }
-
-  const fixture = upcoming[currentFixture];
-
-  document.getElementById("fixtureTeam1").textContent =
-    fixture.team1;
-
-  document.getElementById("fixtureTeam2").textContent =
-    fixture.team2;
-
-  document.getElementById("fixtureMatchday").textContent =
-    `MATCHDAY ${fixture.matchday}`;
-
-  document.getElementById("fixtureDate").textContent =
-    fixture.scheduled_at
-      ? formatDate(fixture.scheduled_at)
-      : "Jadwal pertandingan";
+  const date =
+    document.getElementById("fixtureDate");
 
   const dots =
     document.getElementById("fixtureDots");
 
-  dots.innerHTML = upcoming.map((_, index) => `
-    <span class="${index === currentFixture ? "active" : ""}"></span>
-  `).join("");
+
+  if (upcoming.length === 0) {
+
+    team1.textContent = "-";
+    team2.textContent = "-";
+
+    matchday.textContent =
+      "Tidak ada pertandingan";
+
+    date.textContent = "";
+
+    dots.innerHTML = "";
+
+    return;
+  }
+
+
+  if (
+    currentFixture >= upcoming.length
+  ) {
+    currentFixture = 0;
+  }
+
+
+  const fixture =
+    upcoming[currentFixture];
+
+
+  team1.textContent =
+    fixture.team1;
+
+  team2.textContent =
+    fixture.team2;
+
+  matchday.textContent =
+    `MATCHDAY ${fixture.matchday}`;
+
+
+  if (fixture.scheduled_at) {
+
+    date.textContent =
+      formatDate(
+        fixture.scheduled_at
+      );
+
+  } else {
+
+    date.textContent =
+      "Jadwal pertandingan";
+  }
+
+
+  dots.innerHTML =
+    upcoming.map((_, index) => `
+      <span class="${
+        index === currentFixture
+          ? "active"
+          : ""
+      }"></span>
+    `).join("");
 }
 
 
 /* =========================
-   SLIDER BUTTON
+   SLIDER
 ========================= */
 
 document
   .getElementById("prevFixture")
   .addEventListener("click", () => {
 
-    const upcoming = fixtures.filter(
-      fixture => fixture.status === "UPCOMING"
-    );
+    const upcoming =
+      getUpcomingFixtures();
 
     if (upcoming.length === 0) return;
 
     currentFixture--;
 
     if (currentFixture < 0) {
-      currentFixture = upcoming.length - 1;
+      currentFixture =
+        upcoming.length - 1;
     }
 
     renderHomeFixture();
@@ -430,15 +553,17 @@ document
   .getElementById("nextFixture")
   .addEventListener("click", () => {
 
-    const upcoming = fixtures.filter(
-      fixture => fixture.status === "UPCOMING"
-    );
+    const upcoming =
+      getUpcomingFixtures();
 
     if (upcoming.length === 0) return;
 
     currentFixture++;
 
-    if (currentFixture >= upcoming.length) {
+    if (
+      currentFixture >=
+      upcoming.length
+    ) {
       currentFixture = 0;
     }
 
@@ -446,19 +571,21 @@ document
   });
 
 
-/* AUTO ROLL */
+/* AUTO ROLL 5 DETIK */
 
-fixtureTimer = setInterval(() => {
+setInterval(() => {
 
-  const upcoming = fixtures.filter(
-    fixture => fixture.status === "UPCOMING"
-  );
+  const upcoming =
+    getUpcomingFixtures();
 
   if (upcoming.length <= 1) return;
 
   currentFixture++;
 
-  if (currentFixture >= upcoming.length) {
+  if (
+    currentFixture >=
+    upcoming.length
+  ) {
     currentFixture = 0;
   }
 
@@ -468,17 +595,18 @@ fixtureTimer = setInterval(() => {
 
 
 /* =========================
-   LOAD MATCHES
+   MATCHES / RESULTS
 ========================= */
 
 async function loadMatches() {
 
-  const { data, error } = await supabaseClient
-    .from("matches")
-    .select("*")
-    .order("id", {
-      ascending: false
-    });
+  const { data, error } =
+    await supabaseClient
+      .from("matches")
+      .select("*")
+      .order("id", {
+        ascending: false
+      });
 
   if (error) {
     console.error(error);
@@ -493,10 +621,6 @@ async function loadMatches() {
 }
 
 
-/* =========================
-   RESULTS
-========================= */
-
 function renderMatches() {
 
   const container =
@@ -504,67 +628,253 @@ function renderMatches() {
 
   if (!container) return;
 
+
   if (matches.length === 0) {
+
     container.innerHTML =
       `<p>Belum ada hasil pertandingan.</p>`;
+
     return;
   }
 
-  container.innerHTML = matches.map(match => {
 
-    let result1 = "";
-    let result2 = "";
+  container.innerHTML =
+    matches.map(match => {
 
-    if (match.score1 > match.score2) {
-      result1 = "win";
-      result2 = "loss";
-    }
+      let class1 = "";
+      let class2 = "";
 
-    if (match.score1 < match.score2) {
-      result1 = "loss";
-      result2 = "win";
-    }
+      if (
+        match.score1 >
+        match.score2
+      ) {
+        class1 = "win";
+        class2 = "loss";
+      }
 
-    if (match.score1 === match.score2) {
-      result1 = "draw";
-      result2 = "draw";
-    }
+      else if (
+        match.score1 <
+        match.score2
+      ) {
+        class1 = "loss";
+        class2 = "win";
+      }
 
-    return `
-      <div class="match-card">
+      else {
+        class1 = "draw";
+        class2 = "draw";
+      }
 
-        <small>${escapeHTML(match.status)}</small>
 
-        <div class="match-teams">
+      return `
+        <div class="match-card">
 
-          <span class="${result1}">
-            ${escapeHTML(match.team1)}
-          </span>
+          <small>
+            ${escapeHTML(match.status)}
+          </small>
 
-          <strong>
-            ${match.score1} - ${match.score2}
-          </strong>
+          <div class="match-teams">
 
-          <span class="${result2}">
-            ${escapeHTML(match.team2)}
-          </span>
+            <span class="${class1}">
+              ${escapeHTML(match.team1)}
+            </span>
+
+            <strong>
+              ${match.score1} - ${match.score2}
+            </strong>
+
+            <span class="${class2}">
+              ${escapeHTML(match.team2)}
+            </span>
+
+          </div>
 
         </div>
+      `;
 
-      </div>
-    `;
-
-  }).join("");
+    }).join("");
 }
 
 
 /* =========================
-   TABLE
+   INPUT HASIL
+========================= */
+
+async function addMatch() {
+
+  const team1 =
+    document.getElementById(
+      "matchTeam1Select"
+    ).value;
+
+  const team2 =
+    document.getElementById(
+      "matchTeam2Select"
+    ).value;
+
+  const score1Input =
+    document.getElementById(
+      "matchScore1"
+    );
+
+  const score2Input =
+    document.getElementById(
+      "matchScore2"
+    );
+
+  const message =
+    document.getElementById(
+      "matchMessage"
+    );
+
+
+  if (!team1 || !team2) {
+    message.textContent =
+      "Pilih kedua tim.";
+
+    return;
+  }
+
+
+  if (team1 === team2) {
+
+    message.textContent =
+      "Tim tidak boleh sama.";
+
+    return;
+  }
+
+
+  if (
+    score1Input.value === "" ||
+    score2Input.value === ""
+  ) {
+
+    message.textContent =
+      "Masukkan skor.";
+
+    return;
+  }
+
+
+  const score1 =
+    Number(score1Input.value);
+
+  const score2 =
+    Number(score2Input.value);
+
+
+  if (
+    score1 < 0 ||
+    score2 < 0
+  ) {
+
+    message.textContent =
+      "Skor tidak valid.";
+
+    return;
+  }
+
+
+  /*
+    CEK APAKAH PERTANDINGAN
+    MEMANG ADA DI JADWAL.
+  */
+
+  const { data: fixture } =
+    await supabaseClient
+      .from("fixtures")
+      .select("*")
+      .eq("team1", team1)
+      .eq("team2", team2)
+      .eq("status", "UPCOMING")
+      .limit(1)
+      .maybeSingle();
+
+
+  if (!fixture) {
+
+    message.textContent =
+      "Pertandingan tersebut tidak ditemukan di jadwal.";
+
+    return;
+  }
+
+
+  /*
+    SIMPAN HASIL
+  */
+
+  const { error: matchError } =
+    await supabaseClient
+      .from("matches")
+      .insert({
+        team1: team1,
+        score1: score1,
+        score2: score2,
+        team2: team2,
+        status: "FT"
+      });
+
+
+  if (matchError) {
+
+    console.error(matchError);
+
+    message.textContent =
+      "Gagal menyimpan hasil.";
+
+    return;
+  }
+
+
+  /*
+    PENTING:
+    FIXTURE LANGSUNG DIUBAH
+    MENJADI PLAYED.
+
+    Karena tampilan Home dan
+    Upcoming hanya mengambil
+    status UPCOMING, pertandingan
+    ini otomatis hilang.
+  */
+
+  const { error: updateError } =
+    await supabaseClient
+      .from("fixtures")
+      .update({
+        status: "PLAYED"
+      })
+      .eq("id", fixture.id);
+
+
+  if (updateError) {
+    console.error(updateError);
+  }
+
+
+  score1Input.value = "";
+  score2Input.value = "";
+
+  message.textContent =
+    "Pertandingan selesai dan hasil berhasil disimpan.";
+
+
+  currentFixture = 0;
+
+  await loadMatches();
+  await loadFixtures();
+}
+
+
+/* =========================
+   KLASEMEN
 ========================= */
 
 function calculateTable() {
 
   const table = {};
+
 
   teams.forEach(team => {
 
@@ -586,42 +896,57 @@ function calculateTable() {
   matches.forEach(match => {
 
     if (!table[match.team1]) {
-      table[match.team1] = createTeamStats(
-        match.team1
-      );
+      table[match.team1] =
+        createTeamStats(match.team1);
     }
 
     if (!table[match.team2]) {
-      table[match.team2] = createTeamStats(
-        match.team2
-      );
+      table[match.team2] =
+        createTeamStats(match.team2);
     }
 
-    const a = table[match.team1];
-    const b = table[match.team2];
+
+    const a =
+      table[match.team1];
+
+    const b =
+      table[match.team2];
+
 
     a.mp++;
     b.mp++;
 
-    a.gf += match.score1;
-    a.ga += match.score2;
 
-    b.gf += match.score2;
-    b.ga += match.score1;
+    a.gf += Number(match.score1);
+    a.ga += Number(match.score2);
 
-    if (match.score1 > match.score2) {
+    b.gf += Number(match.score2);
+    b.ga += Number(match.score1);
+
+
+    if (
+      match.score1 >
+      match.score2
+    ) {
 
       a.w++;
       a.pts += 3;
       b.l++;
 
-    } else if (match.score1 < match.score2) {
+    }
+
+    else if (
+      match.score1 <
+      match.score2
+    ) {
 
       b.w++;
       b.pts += 3;
       a.l++;
 
-    } else {
+    }
+
+    else {
 
       a.d++;
       b.d++;
@@ -634,7 +959,10 @@ function calculateTable() {
 
 
   Object.values(table).forEach(team => {
-    team.gd = team.gf - team.ga;
+
+    team.gd =
+      team.gf - team.ga;
+
   });
 
 
@@ -650,36 +978,39 @@ function calculateTable() {
       }
 
       return b.gf - a.gf;
-
     });
 
 
   const tbody =
-    document.getElementById("leagueTable");
+    document.getElementById(
+      "leagueTable"
+    );
 
-  tbody.innerHTML = sorted.map((team, index) => `
 
-    <tr>
+  tbody.innerHTML =
+    sorted.map((team, index) => `
 
-      <td>${index + 1}</td>
+      <tr>
 
-      <td>${escapeHTML(team.team)}</td>
+        <td>${index + 1}</td>
 
-      <td>${team.mp}</td>
+        <td>
+          ${escapeHTML(team.team)}
+        </td>
 
-      <td>${team.w}</td>
+        <td>${team.mp}</td>
+        <td>${team.w}</td>
+        <td>${team.d}</td>
+        <td>${team.l}</td>
+        <td>${team.gd}</td>
 
-      <td>${team.d}</td>
+        <td>
+          <strong>${team.pts}</strong>
+        </td>
 
-      <td>${team.l}</td>
+      </tr>
 
-      <td>${team.gd}</td>
-
-      <td><strong>${team.pts}</strong></td>
-
-    </tr>
-
-  `).join("");
+    `).join("");
 }
 
 
@@ -701,98 +1032,6 @@ function createTeamStats(name) {
 
 
 /* =========================
-   ADD RESULT
-========================= */
-
-async function addMatch() {
-
-  const team1 =
-    document.getElementById("matchTeam1Select").value;
-
-  const team2 =
-    document.getElementById("matchTeam2Select").value;
-
-  const score1 =
-    Number(document.getElementById("matchScore1").value);
-
-  const score2 =
-    Number(document.getElementById("matchScore2").value);
-
-  const message =
-    document.getElementById("matchMessage");
-
-
-  if (!team1 || !team2) {
-    message.textContent =
-      "Pilih kedua tim.";
-    return;
-  }
-
-  if (team1 === team2) {
-    message.textContent =
-      "Tim tidak boleh sama.";
-    return;
-  }
-
-  if (
-    document.getElementById("matchScore1").value === "" ||
-    document.getElementById("matchScore2").value === ""
-  ) {
-    message.textContent =
-      "Masukkan skor.";
-    return;
-  }
-
-
-  const { error } = await supabaseClient
-    .from("matches")
-    .insert({
-      team1,
-      score1,
-      score2,
-      team2,
-      status: "FT"
-    });
-
-
-  if (error) {
-
-    console.error(error);
-
-    message.textContent =
-      "Gagal menyimpan hasil.";
-
-    return;
-  }
-
-
-  /*
-    Kalau pertandingan tersebut ada di fixtures,
-    otomatis ubah statusnya menjadi PLAYED.
-  */
-
-  await supabaseClient
-    .from("fixtures")
-    .update({
-      status: "PLAYED"
-    })
-    .eq("team1", team1)
-    .eq("team2", team2)
-    .eq("status", "UPCOMING");
-
-
-  document.getElementById("matchScore1").value = "";
-  document.getElementById("matchScore2").value = "";
-
-  message.textContent =
-    "Hasil berhasil disimpan.";
-
-  await loadMatches();
-  await loadFixtures();
-}
-
-
-/* =========================
    LOGIN
 ========================= */
 
@@ -802,7 +1041,8 @@ async function checkLogin() {
     data: {
       session
     }
-  } = await supabaseClient.auth.getSession();
+  } =
+    await supabaseClient.auth.getSession();
 
   updateAdminUI(session);
 }
@@ -811,21 +1051,33 @@ async function checkLogin() {
 function updateAdminUI(session) {
 
   const loginBox =
-    document.getElementById("loginBox");
+    document.getElementById(
+      "loginBox"
+    );
 
   const adminPanel =
-    document.getElementById("adminPanel");
+    document.getElementById(
+      "adminPanel"
+    );
+
 
   if (session) {
 
-    loginBox.style.display = "none";
-    adminPanel.style.display = "block";
+    loginBox.style.display =
+      "none";
 
-  } else {
+    adminPanel.style.display =
+      "block";
 
-    loginBox.style.display = "block";
-    adminPanel.style.display = "none";
+  }
 
+  else {
+
+    loginBox.style.display =
+      "block";
+
+    adminPanel.style.display =
+      "none";
   }
 }
 
@@ -833,30 +1085,38 @@ function updateAdminUI(session) {
 async function login() {
 
   const email =
-    document.getElementById("loginEmail").value;
+    document.getElementById(
+      "loginEmail"
+    ).value;
 
   const password =
-    document.getElementById("loginPassword").value;
+    document.getElementById(
+      "loginPassword"
+    ).value;
 
   const message =
-    document.getElementById("loginMessage");
+    document.getElementById(
+      "loginMessage"
+    );
 
 
   const {
     data,
     error
-  } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
+  } =
+    await supabaseClient.auth
+      .signInWithPassword({
+        email,
+        password
+      });
 
 
   if (error) {
 
+    console.error(error);
+
     message.textContent =
       "Login gagal.";
-
-    console.error(error);
 
     return;
   }
@@ -886,25 +1146,39 @@ async function logout() {
 function updateStats() {
 
   const totalTeams =
-    document.getElementById("totalTeams");
+    document.getElementById(
+      "totalTeams"
+    );
 
   const totalMatches =
-    document.getElementById("totalMatches");
+    document.getElementById(
+      "totalMatches"
+    );
 
   const playedMatches =
-    document.getElementById("playedMatches");
+    document.getElementById(
+      "playedMatches"
+    );
 
 
   if (totalTeams) {
-    totalTeams.textContent = teams.length;
+    totalTeams.textContent =
+      teams.length;
   }
+
 
   if (totalMatches) {
+
     totalMatches.textContent =
-      fixtures.length;
+      fixtures.filter(
+        fixture =>
+          fixture.status === "UPCOMING"
+      ).length;
   }
 
+
   if (playedMatches) {
+
     playedMatches.textContent =
       matches.length;
   }
@@ -917,14 +1191,14 @@ function updateStats() {
 
 function formatDate(date) {
 
-  return new Date(date).toLocaleString(
-    "id-ID",
-    {
-      dateStyle: "medium",
-      timeStyle: "short"
-    }
-  );
-
+  return new Date(date)
+    .toLocaleString(
+      "id-ID",
+      {
+        dateStyle: "medium",
+        timeStyle: "short"
+      }
+    );
 }
 
 
@@ -936,32 +1210,56 @@ function escapeHTML(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
 
+
+function escapeAttribute(value) {
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
 
 
 /* =========================
-   BUTTON EVENTS
+   BUTTONS
 ========================= */
 
 document
   .getElementById("loginBtn")
-  .addEventListener("click", login);
+  .addEventListener(
+    "click",
+    login
+  );
+
 
 document
   .getElementById("logoutBtn")
-  .addEventListener("click", logout);
+  .addEventListener(
+    "click",
+    logout
+  );
+
 
 document
   .getElementById("addTeamBtn")
-  .addEventListener("click", addTeam);
+  .addEventListener(
+    "click",
+    addTeam
+  );
+
 
 document
-  .getElementById("generateFixturesBtn")
+  .getElementById(
+    "generateFixturesBtn"
+  )
   .addEventListener(
     "click",
     generateFixtures
   );
+
 
 document
   .getElementById("addMatchBtn")
@@ -969,6 +1267,21 @@ document
     "click",
     addMatch
   );
+
+
+/* =========================
+   ENTER = TAMBAH TIM
+========================= */
+
+document
+  .getElementById("teamNameInput")
+  .addEventListener("keydown", event => {
+
+    if (event.key === "Enter") {
+      addTeam();
+    }
+
+  });
 
 
 /* =========================
@@ -1001,7 +1314,9 @@ supabaseClient
       table: "fixtures"
     },
     async () => {
+
       await loadFixtures();
+
     }
   )
   .subscribe();
@@ -1017,23 +1332,31 @@ supabaseClient
       table: "matches"
     },
     async () => {
+
       await loadMatches();
+
     }
   )
   .subscribe();
 
 
 /* =========================
-   INIT
+   START
 ========================= */
 
 async function init() {
 
   await loadTeams();
+
   await loadMatches();
+
   await loadFixtures();
+
   await checkLogin();
+
   calculateTable();
+
+  updateStats();
 }
 
 init();
