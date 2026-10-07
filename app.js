@@ -6,7 +6,7 @@ const SUPABASE_URL =
   "https://jrhgxphgvahlrodjtjzs.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
-  "ISI_PUBLISHABLE_KEY_KAMU";
+  "sb_publishable_SuCUxQSZRQGr_GsS1TCy5Q_ItEUJB4d";
 
 const supabaseClient = supabase.createClient(
   SUPABASE_URL,
