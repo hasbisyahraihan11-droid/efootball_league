@@ -1033,22 +1033,6 @@ function renderFormDots(form) {
   }).join("");
 }
 
-  if (!form.length) {
-
-    return `
-      <span class="form-dot">
-        -
-      </span>
-    `;
-
-  }
-
-  return `
-    <div class="form-dots">
-      }).join("")}
-
-}
-
 
 /* =========================
    TEAM DETAIL
