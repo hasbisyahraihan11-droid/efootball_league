@@ -8,98 +8,49 @@
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
-<div class="background"></div>
+  <aside class="sidebar">
 
-<header>
-  <div class="brand">
-    <div class="logo">⚽</div>
+    <h2>⚽ eFootball ID</h2>
 
-    <div>
-      <h2>Komunitas eFootball ID</h2>
-      <p>Rank Member Komunitas eFootball ID</p>
-    </div>
-  </div>
+    <button onclick="showPage('home')">
+      🏠 HOME
+    </button>
 
-  <div class="live">
-    <span></span> LIVE
-  </div>
-</header>
-
-
-<div class="layout">
-
-  <!-- SIDEBAR -->
-  <aside>
-
-    <button class="active">🏠 HOME</button>
-
-    <button onclick="showRanking()">
+    <button onclick="showPage('ranking')">
       🏆 RANKING
     </button>
 
-    <button onclick="showMatches()">
+    <button onclick="showPage('matches')">
       ⚽ MATCHES
     </button>
 
-    <button onclick="showAdmin()">
+    <button onclick="showPage('admin')">
       ⚙️ ADMIN
     </button>
-
-    <div class="side-info">
-      Komunitas eFootball ID
-      <small>Play • Compete • Grow Together</small>
-    </div>
 
   </aside>
 
 
-  <!-- CONTENT -->
-  <main>
+  <main class="main">
 
-    <!-- HERO -->
-    <section class="hero">
+    <!-- HOME -->
+    <section id="home" class="page active">
 
-      <div>
-        <small>eFOOTBALL • KOMUNITAS</small>
+      <div class="hero">
 
-        <h1>
-          SELAMAT<br>
-          <b>BERGABUNG</b>
-        </h1>
+        <p>WELCOME TO</p>
+
+        <h1>KOMUNITAS<br>eFOOTBALL ID</h1>
 
         <p>
-          Website resmi komunitas eFootball ID
+          Tempat bermain, bertanding dan bersaing
+          bersama komunitas eFootball.
         </p>
-      </div>
-
-      <div class="ball">
-        ⚽
-      </div>
-
-    </section>
-
-
-    <!-- MATCH -->
-    <section class="panel">
-
-      <div class="title">
-        <h3>🔴 RECENT MATCHES</h3>
-        <small id="connection">
-          LIVE
-        </small>
-      </div>
-
-      <div id="matches">
-
-        <div class="loading">
-          Memuat pertandingan...
-        </div>
 
       </div>
 
@@ -107,92 +58,76 @@
 
 
     <!-- RANKING -->
-    <section class="panel">
+    <section id="ranking" class="page">
 
-      <div class="title">
+      <h1>🏆 Ranking</h1>
 
-        <h3>🏆 TOP RANKING</h3>
-
-        <small>
-          LIVE RANKING
-        </small>
-
+      <div id="rankingList">
+        <p>Memuat ranking...</p>
       </div>
 
-      <div id="ranking" class="ranking"></div>
+    </section>
+
+
+    <!-- MATCHES -->
+    <section id="matches" class="page">
+
+      <h1>⚽ Recent Matches</h1>
+
+      <div id="matchList">
+        <p>Memuat pertandingan...</p>
+      </div>
 
     </section>
 
 
     <!-- ADMIN -->
-    <section id="admin" class="panel admin">
+    <section id="admin" class="page">
 
-      <div class="title">
+      <h1>⚙️ Tambah Pertandingan</h1>
 
-        <h3>⚙️ ADMIN</h3>
-
-        <small>
-          TAMBAH MATCH
-        </small>
-
-      </div>
-
-
-      <input
-        id="team1"
-        placeholder="Nama Tim 1"
-      >
-
-      <div class="score">
+      <div class="form">
 
         <input
+          type="text"
+          id="team1"
+          placeholder="Nama Team 1"
+        >
+
+        <input
+          type="number"
           id="score1"
-          type="number"
+          placeholder="Score Team 1"
           min="0"
-          value="0"
         >
-
-        <b>VS</b>
 
         <input
-          id="score2"
           type="number"
+          id="score2"
+          placeholder="Score Team 2"
           min="0"
-          value="0"
         >
 
+        <input
+          type="text"
+          id="team2"
+          placeholder="Nama Team 2"
+        >
+
+        <button onclick="addMatch()">
+          ➕ TAMBAH MATCH
+        </button>
+
+        <p id="message"></p>
+
       </div>
-
-
-      <input
-        id="team2"
-        placeholder="Nama Tim 2"
-      >
-
-
-      <button
-        class="save"
-        onclick="addMatch()"
-      >
-        ➕ SIMPAN HASIL
-      </button>
-
-
-      <p id="message"></p>
 
     </section>
 
   </main>
 
-</div>
 
-
-<footer>
-  © 2026 Komunitas eFootball ID
-</footer>
-
-
-<script src="app.js"></script>
+  <script src="app.js"></script>
 
 </body>
 </html>
