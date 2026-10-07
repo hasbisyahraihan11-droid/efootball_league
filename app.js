@@ -973,38 +973,30 @@ function calculateTable() {
 ========================= */
 
 function getTeamForm(teamName) {
-
   return matches
-
     .filter(match =>
       match.team1 === teamName ||
       match.team2 === teamName
     )
-
     .sort(
       (a, b) =>
         Number(a.id) - Number(b.id)
     )
-
     .slice(-5)
-
     .map(match => {
 
       const isTeam1 =
         match.team1 === teamName;
-
 
       const forScore =
         isTeam1
           ? Number(match.score1)
           : Number(match.score2);
 
-
       const againstScore =
         isTeam1
           ? Number(match.score2)
           : Number(match.score1);
-
 
       if (forScore > againstScore)
         return "W";
@@ -1013,8 +1005,8 @@ function getTeamForm(teamName) {
         return "L";
 
       return "D";
-
     });
+}
 
 function renderFormDots(form) {
   if (!form || form.length === 0) {
