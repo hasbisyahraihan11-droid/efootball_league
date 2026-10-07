@@ -3,10 +3,10 @@
 // ==========================================
 
 const SUPABASE_URL =
-  "ISI_URL_SUPABASE_KAMU";
+  "https://jrhgxphgvahlrodjtzs.supabase.co";
 
 const SUPABASE_ANON_KEY =
-  "ISI_ANON_KEY_SUPABASE_KAMU";
+  "sb_publishable_SuCUxQSZRQGr_GsS1TCy5Q_ItEUJB4d";
 
 
 const supabaseClient =
