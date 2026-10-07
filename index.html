@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>EFOOTBALL LEAGUE</title>
+  <title>eFootball League</title>
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -13,11 +13,8 @@
 
   <header class="topbar">
     <div class="brand">
-      <span class="brand-mark">CL</span>
-      <div>
-        <h1>EFOOTBALL LEAGUE</h1>
-        <p>BY HASBEE</p>
-      </div>
+      <h1>eFootball League</h1>
+      <p>Football Competition</p>
     </div>
 
     <nav>
@@ -31,128 +28,112 @@
   <main>
 
     <!-- HOME -->
-    <section id="home" class="page active">
+    <section id="home" class="page active-page">
 
       <div class="hero">
-        <div>
-          <p class="eyebrow">WELCOME TO</p>
-          <h2>EFOOTBALL<br><span>LEAGUE</span></h2>
-          <p class="hero-text">
-            Kompetisi sepak bola dengan sistem klasemen,
-            jadwal otomatis, dan statistik pertandingan.
-          </p>
-        </div>
+        <p class="eyebrow">WELCOME TO</p>
+
+        <h2>
+          eFOOTBALL<br>
+          <span>LEAGUE</span>
+        </h2>
+
+        <p class="hero-text">
+          Competitive football league management system.
+        </p>
       </div>
 
-      <div class="section-title">
-        <div>
-          <p class="eyebrow">UPCOMING</p>
-          <h2>Pertandingan Berikutnya</h2>
-        </div>
-      </div>
 
-      <div class="next-match">
+      <div class="card">
 
-        <button id="prevFixture" class="arrow-btn">‹</button>
-
-        <div class="next-match-content">
-          <span id="fixtureMatchday" class="matchday">MATCHDAY</span>
-
-          <div class="versus">
-            <span id="fixtureTeam1">-</span>
-            <strong>VS</strong>
-            <span id="fixtureTeam2">-</span>
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">UPCOMING MATCH</p>
+            <h3>Pertandingan Berikutnya</h3>
           </div>
 
-          <p id="fixtureDate" class="muted"></p>
+          <div class="slider-buttons">
+            <button id="prevFixture">‹</button>
+            <button id="nextFixture">›</button>
+          </div>
         </div>
 
-        <button id="nextFixture" class="arrow-btn">›</button>
+        <div id="homeFixture">
+          <div class="empty">
+            Belum ada jadwal pertandingan.
+          </div>
+        </div>
 
       </div>
 
     </section>
 
 
-    <!-- JADWAL -->
-    <section id="jadwal" class="page">
 
-      <div class="section-title">
-        <div>
-          <p class="eyebrow">FIXTURES</p>
-          <h2>Jadwal Pertandingan</h2>
-        </div>
-      </div>
-
-      <div id="upcomingList" class="match-list">
-        <p class="muted">Memuat jadwal...</p>
-      </div>
-
-    </section>
-
-
-    <!-- HASIL -->
-    <section id="hasil" class="page">
-
-      <div class="section-title">
-        <div>
-          <p class="eyebrow">RESULTS</p>
-          <h2>Hasil Pertandingan</h2>
-        </div>
-      </div>
-
-      <div id="matchList" class="match-list">
-        <p class="muted">Memuat hasil...</p>
-      </div>
-
-    </section>
-
-
-    <!-- KLASEMEN -->
+    <!-- KLASemen -->
     <section id="klasemen" class="page">
 
-      <div class="section-title">
-        <div>
-          <p class="eyebrow">STANDINGS</p>
-          <h2>Klasemen</h2>
-          <p class="muted">
-            Klik nama tim untuk melihat jadwal, hasil, dan performa terakhir.
-          </p>
+      <div class="page-heading">
+        <p class="eyebrow">COMPETITION</p>
+        <h2>Klasemen</h2>
+        <p>Klik nama tim untuk melihat jadwal dan hasil pertandingan.</p>
+      </div>
+
+
+      <div class="card table-card">
+
+        <div class="table-wrapper">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Tim</th>
+                <th>MP</th>
+                <th>W</th>
+                <th>D</th>
+                <th>L</th>
+                <th>GD</th>
+                <th>PTS</th>
+                <th>FORM</th>
+              </tr>
+            </thead>
+
+            <tbody id="leagueTable">
+              <tr>
+                <td colspan="9">
+                  Memuat klasemen...
+                </td>
+              </tr>
+            </tbody>
+
+          </table>
+
         </div>
-      </div>
-
-      <div class="table-wrap">
-
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Tim</th>
-              <th>MP</th>
-              <th>W</th>
-              <th>D</th>
-              <th>L</th>
-              <th>GD</th>
-              <th>PTS</th>
-              <th>FORM</th>
-            </tr>
-          </thead>
-
-          <tbody id="leagueTable">
-          </tbody>
-        </table>
 
       </div>
+
 
 
       <!-- DETAIL TIM -->
-      <div id="teamDetail" class="team-detail hidden">
+
+      <div id="teamDetail" class="card team-detail hidden">
 
         <div class="detail-header">
 
           <div>
             <p class="eyebrow">TEAM PROFILE</p>
-            <h2 id="teamDetailName">-</h2>
+
+            <div id="teamDetailIdentity" class="team-detail-identity">
+              <div id="teamDetailLogo"></div>
+
+              <div>
+                <h2 id="teamDetailName">-</h2>
+                <p id="teamDetailSummary">-</p>
+              </div>
+            </div>
+
           </div>
 
           <button id="closeTeamDetail" class="close-btn">
@@ -162,17 +143,15 @@
         </div>
 
 
-        <div id="teamDetailSummary" class="team-summary">
+        <div class="team-summary" id="teamStatsBoxes">
         </div>
 
 
         <div class="detail-section">
 
-          <div class="detail-title">
-            <h3>5 Pertandingan Terakhir</h3>
-          </div>
+          <h3>Form 5 Pertandingan Terakhir</h3>
 
-          <div id="teamDetailForm" class="form-detail">
+          <div id="teamDetailForm" class="form-big">
           </div>
 
           <div class="form-legend">
@@ -184,25 +163,25 @@
         </div>
 
 
-        <div class="detail-section">
+        <div class="detail-grid">
 
-          <div class="detail-title">
-            <h3>Jadwal Tim</h3>
+          <div class="detail-section">
+
+            <h3>Jadwal</h3>
+
+            <div id="teamDetailFixtures">
+            </div>
+
           </div>
 
-          <div id="teamDetailFixtures">
-          </div>
 
-        </div>
+          <div class="detail-section">
 
+            <h3>Hasil</h3>
 
-        <div class="detail-section">
+            <div id="teamDetailResults">
+            </div>
 
-          <div class="detail-title">
-            <h3>Hasil Tim</h3>
-          </div>
-
-          <div id="teamDetailResults">
           </div>
 
         </div>
@@ -212,19 +191,27 @@
     </section>
 
 
+
     <!-- ADMIN -->
+
     <section id="admin" class="page">
 
-      <div class="section-title">
-        <div>
-          <p class="eyebrow">CONTROL PANEL</p>
-          <h2>Admin</h2>
-        </div>
+      <div class="page-heading">
+
+        <p class="eyebrow">CONTROL PANEL</p>
+
+        <h2>Admin</h2>
+
+        <p>
+          Kelola tim, jadwal, dan hasil pertandingan.
+        </p>
+
       </div>
 
 
       <!-- LOGIN -->
-      <div id="loginBox" class="admin-card">
+
+      <div id="loginBox" class="card admin-card">
 
         <h3>Login Admin</h3>
 
@@ -249,54 +236,71 @@
       </div>
 
 
+
       <!-- ADMIN PANEL -->
+
       <div id="adminPanel" class="hidden">
 
+
         <!-- TIM -->
-        <div class="admin-card">
 
-          <div class="admin-card-header">
+        <div class="card admin-card">
+
+          <div class="admin-heading">
+
             <div>
-              <p class="eyebrow">TEAMS</p>
-              <h3>Daftar Tim</h3>
+              <p class="eyebrow">TEAM MANAGEMENT</p>
+              <h3>Tambah Tim</h3>
             </div>
-          </div>
-
-          <div class="input-row">
-
-            <input
-              type="text"
-              id="teamNameInput"
-              placeholder="Nama tim"
-            >
-
-            <button id="addTeamBtn" class="primary-btn">
-              Tambah
-            </button>
 
           </div>
+
+
+          <input
+            type="text"
+            id="teamNameInput"
+            placeholder="Nama tim"
+          >
+
+
+          <input
+            type="text"
+            id="teamLogoInput"
+            placeholder="URL logo tim (opsional)"
+          >
+
+
+          <button id="addTeamBtn" class="primary-btn">
+            Tambah Tim
+          </button>
+
 
           <p id="teamMessage" class="message"></p>
 
-          <div id="teamAdminList">
+
+          <div id="teamAdminList" class="admin-team-list">
           </div>
 
         </div>
 
 
-        <!-- JADWAL -->
-        <div class="admin-card">
 
-          <p class="eyebrow">FIXTURES</p>
+        <!-- GENERATE JADWAL -->
+
+        <div class="card admin-card">
+
+          <p class="eyebrow">SCHEDULE</p>
 
           <h3>Generate Jadwal</h3>
 
-          <p class="muted">
-            Sistem akan membuat jadwal otomatis agar setiap tim
-            bertemu satu kali.
+          <p class="admin-description">
+            Sistem akan membuat jadwal round-robin secara otomatis.
           </p>
 
-          <button id="generateFixturesBtn" class="primary-btn">
+          <button
+            id="generateFixturesBtn"
+            class="primary-btn"
+          >
             Generate Jadwal
           </button>
 
@@ -305,18 +309,24 @@
         </div>
 
 
-        <!-- HASIL -->
-        <div class="admin-card">
+
+        <!-- INPUT HASIL -->
+
+        <div class="card admin-card">
 
           <p class="eyebrow">MATCH RESULT</p>
 
           <h3>Input Hasil</h3>
 
-          <select id="matchTeam1Select">
-            <option value="">Pilih pertandingan</option>
+
+          <select id="matchFixtureSelect">
+            <option value="">
+              Pilih pertandingan
+            </option>
           </select>
 
-          <div class="score-row">
+
+          <div class="score-inputs">
 
             <input
               type="number"
@@ -325,7 +335,7 @@
               placeholder="0"
             >
 
-            <span>-</span>
+            <span>—</span>
 
             <input
               type="number"
@@ -336,18 +346,30 @@
 
           </div>
 
-          <button id="addMatchBtn" class="primary-btn">
+
+          <button
+            id="addMatchBtn"
+            class="primary-btn"
+          >
             Simpan Hasil
           </button>
+
 
           <p id="matchMessage" class="message"></p>
 
         </div>
 
 
-        <button id="logoutBtn" class="logout-btn">
-          Logout
-        </button>
+
+        <!-- LOGOUT -->
+
+        <div class="logout-area">
+
+          <button id="logoutBtn" class="logout-btn">
+            Logout
+          </button>
+
+        </div>
 
       </div>
 
@@ -356,9 +378,11 @@
   </main>
 
 
+
   <footer>
-    EFOOTBALL LEAGUE © 2026
+    eFootball League © 2026
   </footer>
+
 
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
