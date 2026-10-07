@@ -760,3 +760,28 @@ footer {
 .form-empty {
   opacity: 0.5;
 }
+
+.admin-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-team-name {
+  flex: 1;
+}
+
+.delete-team-btn {
+  border: none;
+  background: #dc2626;
+  color: white;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.delete-team-btn:hover {
+  background: #b91c1c;
+}
