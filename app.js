@@ -6,7 +6,7 @@ const SUPABASE_URL =
   "https://jrhgxphgvahlrodjtjzs.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
-  "sb_publishable_SuCUxQSZRQGr_GsS1TCy5Q_ItEUJB4d";
+  "ISI_PUBLISHABLE_KEY_KAMU";
 
 const supabaseClient = supabase.createClient(
   SUPABASE_URL,
@@ -1298,4 +1298,59 @@ function formatDate(dateString) {
       day: "2-digit",
       month: "short",
       year: "numeric",
-      hour:
+      hour: "2-digit",
+      minute: "2-digit"
+    }
+  );
+
+}
+
+
+function escapeHTML(value) {
+
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+function setMessage(
+  element,
+  message,
+  error = false
+) {
+
+  if (!element) return;
+
+  element.textContent = message;
+
+  element.style.color =
+    error
+      ? "#ff4f6d"
+      : "#21d4fd";
+
+}
+
+
+// =====================================================
+// INITIAL LOAD
+// =====================================================
+
+async function init() {
+
+  await Promise.all([
+    loadLeagueTable(),
+    loadMatches(),
+    loadFixtures(),
+    updateStats(),
+    checkLogin()
+  ]);
+
+}
+
+
+init();
