@@ -1008,6 +1008,7 @@ function getTeamForm(teamName) {
     });
 }
 
+
 function renderFormDots(form) {
   if (!form || form.length === 0) {
     return `<span class="form-empty">-</span>`;
