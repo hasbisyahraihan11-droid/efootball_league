@@ -73,3 +73,147 @@
             <strong class="live-text">LIVE</strong>
           </div>
         </div>
+      </div>
+    </section>
+
+
+    <!-- KLASEMEN -->
+    <section id="table" class="page">
+      <div class="page-header">
+        <div>
+          <span class="section-label">COMPETITION</span>
+          <h2>Klasemen Liga</h2>
+          <p>Performa terbaru setiap tim akan muncul otomatis.</p>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-title">
+          <div>
+            <span>🏆</span>
+            <strong>LEAGUE TABLE</strong>
+          </div>
+          <small>FORM = 5 MATCH TERAKHIR</small>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>POS</th>
+                <th>TEAM</th>
+                <th>FORM</th>
+                <th>MP</th>
+                <th>W</th>
+                <th>D</th>
+                <th>L</th>
+                <th>GF</th>
+                <th>GA</th>
+                <th>GD</th>
+                <th>PTS</th>
+              </tr>
+            </thead>
+
+            <tbody id="leagueTable">
+              <tr>
+                <td colspan="11" class="loading">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- PERTANDINGAN -->
+    <section id="matches" class="page">
+      <div class="page-header">
+        <div>
+          <span class="section-label">FIXTURES</span>
+          <h2>Pertandingan</h2>
+          <p>Hasil pertandingan terbaru.</p>
+        </div>
+      </div>
+
+      <div id="matchList" class="match-list">
+        <div class="loading-box">Loading...</div>
+      </div>
+    </section>
+
+
+    <!-- ADMIN -->
+    <section id="admin" class="page">
+      <div class="page-header">
+        <div>
+          <span class="section-label">CONTROL PANEL</span>
+          <h2>Admin</h2>
+          <p>Kelola hasil pertandingan liga.</p>
+        </div>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginBox" class="admin-card">
+        <div class="admin-icon">🔐</div>
+        <h3>Admin Login</h3>
+        <p>Login untuk menambahkan hasil pertandingan.</p>
+
+        <input id="loginEmail" type="email" placeholder="Email">
+        <input id="loginPassword" type="password" placeholder="Password">
+
+        <button onclick="loginAdmin()" class="primary-btn">
+          LOGIN
+        </button>
+
+        <p id="loginMessage" class="message"></p>
+      </div>
+
+
+      <!-- ADMIN PANEL -->
+      <div id="adminPanel" class="admin-card hidden">
+        <div class="admin-top">
+          <div>
+            <span class="section-label">ADMIN MODE</span>
+            <h3>Tambah Pertandingan</h3>
+          </div>
+
+          <button onclick="logoutAdmin()" class="logout-btn">
+            Logout
+          </button>
+        </div>
+
+        <div class="score-form">
+
+          <div class="team-input">
+            <label>HOME TEAM</label>
+            <input id="team1" type="text" placeholder="Nama tim">
+          </div>
+
+          <div class="score-input">
+            <input id="score1" type="number" min="0" value="0">
+            <span>VS</span>
+            <input id="score2" type="number" min="0" value="0">
+          </div>
+
+          <div class="team-input">
+            <label>AWAY TEAM</label>
+            <input id="team2" type="text" placeholder="Nama tim">
+          </div>
+
+        </div>
+
+        <button onclick="addMatch()" class="primary-btn">
+          + TAMBAH HASIL
+        </button>
+
+        <p id="adminMessage" class="message"></p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
