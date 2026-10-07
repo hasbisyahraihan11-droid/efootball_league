@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Komunitas eFootball ID</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+<div class="background"></div>
+
+<header>
+  <div class="brand">
+    <div class="logo">⚽</div>
+
+    <div>
+      <h2>Komunitas eFootball ID</h2>
+      <p>Rank Member Komunitas eFootball ID</p>
+    </div>
+  </div>
+
+  <div class="live">
+    <span></span> LIVE
+  </div>
+</header>
+
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside>
+
+    <button class="active">🏠 HOME</button>
+
+    <button onclick="showRanking()">
+      🏆 RANKING
+    </button>
+
+    <button onclick="showMatches()">
+      ⚽ MATCHES
+    </button>
+
+    <button onclick="showAdmin()">
+      ⚙️ ADMIN
+    </button>
+
+    <div class="side-info">
+      Komunitas eFootball ID
+      <small>Play • Compete • Grow Together</small>
+    </div>
+
+  </aside>
+
+
+  <!-- CONTENT -->
+  <main>
+
+    <!-- HERO -->
+    <section class="hero">
+
+      <div>
+        <small>eFOOTBALL • KOMUNITAS</small>
+
+        <h1>
+          SELAMAT<br>
+          <b>BERGABUNG</b>
+        </h1>
+
+        <p>
+          Website resmi komunitas eFootball ID
+        </p>
+      </div>
+
+      <div class="ball">
+        ⚽
+      </div>
+
+    </section>
+
+
+    <!-- MATCH -->
+    <section class="panel">
+
+      <div class="title">
+        <h3>🔴 RECENT MATCHES</h3>
+        <small id="connection">
+          LIVE
+        </small>
+      </div>
+
+      <div id="matches">
+
+        <div class="loading">
+          Memuat pertandingan...
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- RANKING -->
+    <section class="panel">
+
+      <div class="title">
+
+        <h3>🏆 TOP RANKING</h3>
+
+        <small>
+          LIVE RANKING
+        </small>
+
+      </div>
+
+      <div id="ranking" class="ranking"></div>
+
+    </section>
+
+
+    <!-- ADMIN -->
+    <section id="admin" class="panel admin">
+
+      <div class="title">
+
+        <h3>⚙️ ADMIN</h3>
+
+        <small>
+          TAMBAH MATCH
+        </small>
+
+      </div>
+
+
+      <input
+        id="team1"
+        placeholder="Nama Tim 1"
+      >
+
+      <div class="score">
+
+        <input
+          id="score1"
+          type="number"
+          min="0"
+          value="0"
+        >
+
+        <b>VS</b>
+
+        <input
+          id="score2"
+          type="number"
+          min="0"
+          value="0"
+        >
+
+      </div>
+
+
+      <input
+        id="team2"
+        placeholder="Nama Tim 2"
+      >
+
+
+      <button
+        class="save"
+        onclick="addMatch()"
+      >
+        ➕ SIMPAN HASIL
+      </button>
+
+
+      <p id="message"></p>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<footer>
+  © 2026 Komunitas eFootball ID
+</footer>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>
